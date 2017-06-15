@@ -1,20 +1,17 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
-
+# Basic imports
 import random
-import sys
 import pandas as pd
 import numpy as np
 import warnings
 from scipy import stats
 
-from .Window import Window
+# SWING imports
 from .RFRWindow import RandomForestRegressionWindow
 from .DionesusWindow import DionesusWindow
 from .LassoWindow import LassoWindow
 from .util import utility_module as utility
 from .util.Evaluator import Evaluator
-import pdb
+
 
 class Swing(object):
     """
@@ -23,7 +20,7 @@ class Swing(object):
     """
 
     def __init__(self, file_path, gene_start=None, gene_end=None, time_label="Time", separator="\t",
-                 window_type="RandomForest", step_size=1, min_lag=0, max_lag=0, window_width=3, sub_dict = None):
+                 window_type="RandomForest", step_size=1, min_lag=0, max_lag=0, window_width=3, sub_dict=None):
         """
         Initialize the roller object. Read the file and put it into a pandas dataframe
         :param file_path: string
@@ -90,6 +87,7 @@ class Swing(object):
         self.full_edge_list = None
         self.edge_dict = None
         self.lag_set = None
+        self.averaged_ranks = []
 
     def get_n_windows(self):
         """
@@ -102,7 +100,7 @@ class Swing(object):
         :return: int
         """
         total_windows = int((self.overall_width - self.window_width + 1.0) / self.step_size)
-        return(int(total_windows))
+        return int(total_windows)
 
     def filter_noisy(self):
         for window in self.window_list:
@@ -195,15 +193,15 @@ class Swing(object):
     def set_min_lag(self, min_lag):
         """
         Set the minimum lag for the roller
-        :param min_lag:
+        :param min_lag: float
         :return:
         """
         self.min_lag = min_lag
 
     def set_max_lag(self, max_lag):
         """
-        Set the minimum lag for the roller
-        :param min_lag:
+        Set the maximum lag for the roller
+        :param max_lag: float
         :return:
         """
         self.max_lag = max_lag
@@ -248,7 +246,7 @@ class Swing(object):
 
         self.window_list = window_list
 
-    def create_custom_windows(self, tf_list,random_time=False):
+    def create_custom_windows(self, tf_list, random_time=False):
         """
         Create window objects for the roller to use, with set explanatory variables (such as TFs)
 
@@ -257,11 +255,11 @@ class Swing(object):
 
         :return:
         """
-        #tf_list = ['CBF1','SWI5','ASH1', 'GAL4', 'GAL80']
-        #tf_list = ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10']
+        # tf_list = ['CBF1','SWI5','ASH1', 'GAL4', 'GAL80']
+        # tf_list = ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10']
         # Initialize empty lists
         window_list = []
-        self.tf_list=tf_list
+        self.tf_list = tf_list
 
         # Check to make sure lags are valid if parameters have been changed
         self.check_lags()
@@ -284,20 +282,22 @@ class Swing(object):
             if explanatory_indices is not None:
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
 
-                #remove information from explanatory window
-                to_remove = list(set(explanatory_dict['explanatory_labels'])-set(tf_list))
+                # remove information from explanatory window
+                to_remove = list(set(explanatory_dict['explanatory_labels']) - set(tf_list))
                 for removed_tf in to_remove:
-                    #remove from explanatory_labels
+                    # remove from explanatory_labels
                     removed_index = np.where(explanatory_dict['explanatory_labels'] == removed_tf)[0][0]
-                    explanatory_dict['explanatory_labels'] = np.delete(explanatory_dict['explanatory_labels'], removed_index)
+                    explanatory_dict['explanatory_labels'] = np.delete(explanatory_dict['explanatory_labels'],
+                                                                       removed_index)
 
-                    #explanatory_window
-                    explanatory_dict['explanatory_window'] = np.delete(explanatory_dict['explanatory_window'], removed_index)
+                    # explanatory_window
+                    explanatory_dict['explanatory_window'] = np.delete(explanatory_dict['explanatory_window'],
+                                                                       removed_index)
 
-                    #explanatory_data
-                    explanatory_dict['explanatory_data'] = np.delete(explanatory_dict['explanatory_data'],removed_index,axis=1)
+                    # explanatory_data
+                    explanatory_dict['explanatory_data'] = np.delete(explanatory_dict['explanatory_data'],
+                                                                     removed_index, axis=1)
                     # not explanatory_times
-
 
                 window_info = {"time_label": self.time_label, "gene_start": self.gene_start, "gene_end": self.gene_end,
                                "nth_window": index}
@@ -347,7 +347,7 @@ class Swing(object):
         # Get the data for the current window
         response_df = self.get_window_raw(index)
         response_times, response_data, response_labels = self.strip_dataframe(response_df)
-        response_window = np.array([index]*len(response_labels))
+        response_window = np.array([index] * len(response_labels))
         response_dict = {'response_times': response_times, 'response_data': response_data,
                          'response_labels': response_labels, 'response_window': response_window}
 
@@ -357,7 +357,7 @@ class Swing(object):
         for ii, idx in enumerate(explanatory_indices):
             current_df = self.get_window_raw(idx)
             current_times, current_data, current_labels = self.strip_dataframe(current_df)
-            current_window = np.array([idx]*len(current_labels))
+            current_window = np.array([idx] * len(current_labels))
             if ii == 0:
                 # Initialize values
                 explanatory_times = current_times.copy()
@@ -386,6 +386,10 @@ class Swing(object):
         :param dataframe: data-frame
         :param window_info_dict: dict
             Dictionary containing information needed for window initialization
+        :param td_window:
+        :param explanatory_dict: dict
+        :param response_dict: dict
+
         :return:
         """
         window_obj = None
@@ -456,12 +460,10 @@ class Swing(object):
             for window in self.window_list:
                 window.initialize_params()
 
-
         return self.window_list
 
-
     def fit_windows(self, alpha=None, n_trees=None, n_jobs=None, show_progress=True):
-        #todo: need a better way to pass parameters to fit functions
+        # todo: need a better way to pass parameters to fit functions
         """
         Fit each window in the list
 
@@ -470,6 +472,8 @@ class Swing(object):
 
         :param alpha:
         :param n_trees:
+        :param n_jobs: int (optional); number of child processes to use during RF inference. -1 uses all available cores
+        :param show_progress: bool; print porgress during fitting procedure
         :return:
         """
 
@@ -504,7 +508,7 @@ class Swing(object):
         """
         if self.window_type == "Dionesus":
             for window in self.window_list:
-                #window.run_permutation_test(n_permutations=permutation_n, crag=False)
+                # window.run_permutation_test(n_permutations=permutation_n, crag=False)
                 window.make_edge_table()
 
         if self.window_type == "Lasso":
@@ -515,8 +519,8 @@ class Swing(object):
                 window.make_edge_table()
         if self.window_type == "RandomForest":
             for window in self.window_list:
-                #print("Running permutation on window {}...".format(window.nth_window))
-                #window.run_permutation_test(n_permutations=permutation_n, crag=False)
+                # print("Running permutation on window {}...".format(window.nth_window))
+                # window.run_permutation_test(n_permutations=permutation_n, crag=False)
                 window.make_edge_table(calc_mse=self.calc_mse)
         return self.window_list
 
@@ -533,26 +537,27 @@ class Swing(object):
         :param ascending: Bool
         :return:
         """
+        ranked_result_list = []
         if self.window_type == "Lasso":
-            ranked_result_list = []
             for window in self.window_list:
                 ranked_result = window.rank_results(rank_by, ascending)
                 ranked_result_list.append(ranked_result)
         if self.window_type == "RandomForest":
-            ranked_result_list = []
             for window in self.window_list:
                 ranked_result = window.sort_edges(rank_by)
                 ranked_result_list.append(ranked_result)
 
         aggr_ranks = utility.average_rank(ranked_result_list, rank_by + "-rank")
+
         # sort tables by mean rank in ascending order
         mean_sorted_edge_list = aggr_ranks.sort(columns="mean-rank", axis=0)
         self.averaged_ranks = mean_sorted_edge_list
+
         return self.averaged_ranks
 
     def zscore_all_data(self):
-        #todo: this should not replace raw_data, a new feature should be made
-        #todo: scipy.stats.zscore can be used with the correct parameters for 1 line
+        # todo: this should not replace raw_data, a new feature should be made
+        # todo: scipy.stats.zscore can be used with the correct parameters for 1 line
         """
         Zscore the data in a data-frame
 
@@ -564,12 +569,13 @@ class Swing(object):
         # zscores all the data
         raw_dataset = self.raw_data.values.copy()
 
-        zscored_dataset = pd.DataFrame(stats.zscore(raw_dataset, axis=0, ddof=1), index=self.raw_data.index, columns=self.raw_data.columns)
+        zscored_dataset = pd.DataFrame(stats.zscore(raw_dataset, axis=0, ddof=1), index=self.raw_data.index,
+                                       columns=self.raw_data.columns)
 
         zscored_dataset[self.time_label] = self.raw_data[self.time_label]
         self.norm_data = zscored_dataset
 
-        return(zscored_dataset)
+        return zscored_dataset
 
     def get_window_stats(self):
         """
@@ -588,12 +594,13 @@ class Swing(object):
         :return: dict
         """
         """for each window, get a dict:
-            N : the number of datapoints in this window,
-            time_labels: the names of the timepoints in a roller model
+            N : the number of data points in this window,
+            time_labels: the names of the time points in a roller model
             step_size: the step-size of the current model
             window_size: the size of the window of the current model
             total_windows: the number of windows total
-            window_index: the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window. if the window index is 12, it is the 12th window in the series."""
+            window_index: the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window. 
+            if the window index is 12, it is the 12th window in the series."""
         current_window = self.get_window_raw()
 
         """calculate the window index. todo: move into own function later"""
@@ -608,7 +615,10 @@ class Swing(object):
         # step size is 2
         # 01, 12, 23, 34, 45, 56, 67, 78, 89
 
-        # todo: so the issue is that total windows (get n windows) is the true number of windows, and window index is the nth -1 window... it would be great to consolidate these concepts but no big deal if they can't be.
+        '''todo: so the issue is that total windows (get n windows) is the true number of windows, 
+        and window index is the nth -1 window... 
+        it would be great to consolidate these concepts but no big deal if they can't be.
+        '''
 
         window_stats = {'N': len(current_window.index),
                         'time_labels': current_window[self.time_label].unique(),
@@ -635,13 +645,13 @@ class Swing(object):
 
             current_df['adj_imp'] = np.abs(current_df['Importance'])
 
-            #current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
+            # current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
             if self.window_type is "Dionesus":
                 current_df['adj_imp'] = np.abs(current_df['Importance'])
             elif self.window_type is "Lasso":
                 current_df['adj_imp'] = np.abs(current_df['Stability'])
             current_df.sort(['adj_imp'], ascending=False, inplace=True)
-            #current_df.sort(['Importance'], ascending=False, inplace=True)
+            # current_df.sort(['Importance'], ascending=False, inplace=True)
             current_df['Rank'] = np.arange(0, len(current_df))
 
             if df is None:
@@ -673,18 +683,17 @@ class Swing(object):
             if self.calc_mse:
                 current_df = current_df[current_df['MSE_diff'] < 0]
 
-
-            current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
-            #change
+            current_df['adj_imp'] = np.abs(current_df['Importance']) * (1 - current_df['p_value'])
+            # change
             if ww == 8:
-                current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])*2
+                current_df['adj_imp'] = np.abs(current_df['Importance']) * (1 - current_df['p_value']) * 2
 
             if self.window_type is "Dionesus":
                 current_df['adj_imp'] = np.abs(current_df['Importance'])
             elif self.window_type is "Lasso":
                 current_df['adj_imp'] = np.abs(current_df['Stability'])
             current_df.sort(['adj_imp'], ascending=False, inplace=True)
-            #current_df.sort(['Importance'], ascending=False, inplace=True)
+            # current_df.sort(['Importance'], ascending=False, inplace=True)
             current_df['Rank'] = np.arange(0, len(current_df))
 
             if df is None:
@@ -720,7 +729,8 @@ class Swing(object):
         # Calculate the full set of potential edges with TF list if it is provided.
 
         if self.tf_list is not None:
-            full_edge_set = set(utility.make_possible_edge_list(np.array(self.tf_list), self.gene_list, self_edges=self_edges))
+            full_edge_set = set(
+                utility.make_possible_edge_list(np.array(self.tf_list), self.gene_list, self_edges=self_edges))
         else:
             full_edge_set = set(utility.make_possible_edge_list(self.gene_list, self.gene_list, self_edges=self_edges))
 
@@ -729,11 +739,11 @@ class Swing(object):
 
         self.edge_dict = {}
         lag_importance_score, lag_lump_method = lag_method.split('_')
-        score_method = eval('np.'+lag_importance_score)
-        lump_method = eval('np.'+lag_lump_method)
-        for idx,edge in enumerate(full_edge_set):
-            if idx%1000 ==0:
-                print(str(idx)+" out of "+ str(len(full_edge_set)))
+        score_method = eval('np.' + lag_importance_score)
+        lump_method = eval('np.' + lag_lump_method)
+        for idx, edge in enumerate(full_edge_set):
+            if idx % 1000 == 0:
+                print(str(idx) + " out of " + str(len(full_edge_set)))
             if edge in edge_diff:
                 self.edge_dict[edge] = {"dataframe": None, "mean_importance": 0, 'real_edge': (edge in true_edges),
                                         "max_importance": 0, 'max_edge': None, 'lag_importance': 0,
@@ -746,26 +756,28 @@ class Swing(object):
             lag_imp = score_method([lump_method(current_df.Importance[current_df.Lag == lag]) for lag in lag_set])
             lag_adj_imp = score_method([lump_method(current_df.adj_imp[current_df.Lag == lag]) for lag in lag_set])
             lag_rank = score_method([lump_method(current_df.Rank[current_df.Lag == lag]) for lag in lag_set])
-            self.edge_dict[edge] = {"dataframe":current_df, "mean_importance":np.mean(current_df.Importance),
-                                    'real_edge':(edge in true_edges), "max_importance":current_df.Importance[max_idx],
-                                    'max_edge':(current_df.P_window[max_idx], current_df.C_window[max_idx]),
-                                    'lag_importance': lag_imp, 'lag_method':lag_method,
-                                    'rank_importance': lag_rank, 'adj_importance':lag_adj_imp}
+            self.edge_dict[edge] = {"dataframe": current_df, "mean_importance": np.mean(current_df.Importance),
+                                    'real_edge': (edge in true_edges), "max_importance": current_df.Importance[max_idx],
+                                    'max_edge': (current_df.P_window[max_idx], current_df.C_window[max_idx]),
+                                    'lag_importance': lag_imp, 'lag_method': lag_method,
+                                    'rank_importance': lag_rank, 'adj_importance': lag_adj_imp}
         print("[DONE]")
         if edge_diff:
             message = 'The last %i edges had no meaningful importance score' \
-                      ' and were placed at the bottom of the list' %len(edge_diff)
+                      ' and were placed at the bottom of the list' % len(edge_diff)
             warnings.warn(message)
         return
 
-    def make_sort_df(self, df, sort_by='mean'):
+    @staticmethod
+    def make_sort_df(df, sort_by='mean'):
         """
         Calculate the mean for each edge
         :param df: dataframe
+        :param sort_by: str
         :return: dataframe
         """
 
-        sort_field = sort_by+"_importance"
+        sort_field = sort_by + "_importance"
 
         print("Calculating {} edge importance...".format(sort_by))
         temp_dict = {edge: df[edge][sort_field] for edge in df.keys()}
@@ -775,25 +787,26 @@ class Swing(object):
             sort_df.sort(sort_field, ascending=True, inplace=True)
         else:
             sort_df.sort(sort_field, ascending=False, inplace=True)
-        #sort_df['mean_importance'] = stats.zscore(sort_df['mean_importance'], ddof=1)
+        # sort_df['mean_importance'] = stats.zscore(sort_df['mean_importance'], ddof=1)
         sort_df.index.name = 'regulator-target'
         sort_df = sort_df.reset_index()
         print("[DONE]")
         return sort_df
 
-    def calc_edge_importance_cutoff(self, df):
+    @staticmethod
+    def calc_edge_importance_cutoff(df):
         """
         Calculate the importance threshold to filter edges on
         :param df:
         :return: dict
         """
         x, y = utility.elbow_criteria(range(0, len(df.Importance)), df.Importance.values.astype(np.float64))
-        elbow_dict = {'num_edges':x, 'importance_threshold':y}
+        elbow_dict = {'num_edges': x, 'importance_threshold': y}
 
         return elbow_dict
 
     def get_samples(self):
-        df=pd.read_csv(self.file_path,sep='\t')
+        df = pd.read_csv(self.file_path, sep='\t')
         node_list = df.columns.tolist()
         node_list.pop(0)
         return node_list
@@ -809,17 +822,16 @@ class Swing(object):
         """
         print("Scoring model...")
         if gold_standard_file is None:
-            current_gold_standard = self.file_path.replace("timeseries.tsv","goldstandard.tsv")
+            current_gold_standard = self.file_path.replace("timeseries.tsv", "goldstandard.tsv")
         else:
             current_gold_standard = gold_standard_file
 
         evaluator = Evaluator(current_gold_standard, '\t', node_list=self.get_samples())
         tpr, fpr, auroc = evaluator.calc_roc(sorted_edge_list)
-        auroc_dict = {'tpr':np.array(tpr), 'fpr':np.array(fpr), 'auroc': np.array(auroc)}
+        auroc_dict = {'tpr': np.array(tpr), 'fpr': np.array(fpr), 'auroc': np.array(auroc)}
         precision, recall, aupr = evaluator.calc_pr(sorted_edge_list)
-        aupr_random = [len(evaluator.gs_flat)/float(len(evaluator.full_list))]*len(recall)
+        aupr_random = [len(evaluator.gs_flat) / float(len(evaluator.full_list))] * len(recall)
         aupr_dict = {"precision": np.array(precision), "recall": np.array(recall), "aupr": np.array(aupr),
                      "aupr_random": np.array(aupr_random)}
         print("[DONE]")
         return auroc_dict, aupr_dict
-
