@@ -1,6 +1,3 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
-
 import unittest
 from Swing.util.linear_wrapper import LassoWrapper
 from Swing.util import linear_wrapper

@@ -1,6 +1,3 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
-
 # todo: Clean this up! Make it into a real module
 
 import os, sys, itertools

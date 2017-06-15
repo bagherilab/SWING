@@ -1,6 +1,3 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
-
 from scipy import stats
 from sklearn.cross_decomposition import PLSRegression
 import numpy as np

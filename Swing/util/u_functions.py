@@ -1,6 +1,3 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
-
 import numpy as np
 import matplotlib.pyplot as plt
 

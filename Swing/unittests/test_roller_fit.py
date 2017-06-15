@@ -1,6 +1,3 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
-
 import Swing
 from sklearn.preprocessing import Imputer
 import matplotlib as mpl

@@ -1,5 +1,3 @@
-__author__ = 'Justin Finkle'
-__email__ = 'jfinkle@u.northwestern.edu'
 from linear_wrapper import LassoWrapper
 import numpy as np
 from scipy import integrate
