@@ -39,3 +39,12 @@ Development
 -----------
 
 https://github.com/bagherilab/SWING
+
+Authors
+-----------
+
+- [Justin Finkle](https://github.com/justinfinkle)
+
+- [Jia Wu](https://github.com/jiawu)
+
+- [Dr. Neda Bagheri](http://www.mccormick.northwestern.edu/research-faculty/directory/profiles/bagheri-neda.html)
