@@ -49,11 +49,11 @@ class TestRoller(unittest.TestCase):
         pass
 
     def test_get_window_object(self):
-        print self.dream_roller.window_width
-        print self.dream_roller.overall_width
-        print self.dream_roller.get_n_windows()
-        print self.dream_roller.get_window_raw(self.dream_roller.current_step)
-        print self.dream_roller.get_window(self.dream_roller.current_step).head()
+        print(self.dream_roller.window_width)
+        print(self.dream_roller.overall_width)
+        print(self.dream_roller.get_n_windows())
+        print(self.dream_roller.get_window_raw(self.dream_roller.current_step))
+        print(self.dream_roller.get_window(self.dream_roller.current_step).head())
     
     def test_initialize_windows(self):
         self.dream_roller.create_windows()

@@ -1,9 +1,7 @@
 import os
-import sys
-import time
 import pandas as pd
 import numpy as np
-from Evaluator import Evaluator
+from Swing.util.Evaluator import Evaluator
 from sklearn.neighbors import DistanceMetric
 from matplotlib import rcParams
 rcParams['font.family'] = 'sans-serif'
@@ -12,11 +10,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import scipy.cluster.hierarchy as sch
-from scipy.stats import pearsonr
-from scipy import stats
-from sklearn.cluster import AffinityPropagation
-from sklearn import metrics
-from sklearn.cluster import KMeans
 from gmpy2 import is_square
 
 def load_roller_pickles(pickle_path):
@@ -220,7 +213,7 @@ def explore_rankings(data_frame):
     evaluator = Evaluator(gs, '\t')
     true_edges = evaluator.gs_flat.tolist()
     n_true = len(true_edges)
-    print n_true
+    print(n_true)
     if is_square(n_true):
         rows = np.sqrt(n_true)
         columns = np.sqrt(n_true)
@@ -254,7 +247,7 @@ if __name__ == '__main__':
     #pd.to_pickle(roller_dict, "../../output/results_pickles/Roller_outputs_RF.pickle")
 
     #roller_dict = pd.read_pickle("../../output/results_pickles/Roller_outputs_RF.pickle")
-    #roller_dict = pd.read_pickle("../../output/results_pickles/Roller_outputs_RF_moretrees.pickle")
+    roller_dict = pd.read_pickle("../../output/results_pickles/Roller_outputs_RF_moretrees.pickle")
 
     #print len(roller_dict.keys())
     window_size_array = np.load("../../output/results_pickles/window_size.npy")
@@ -274,9 +267,8 @@ if __name__ == '__main__':
         pdf.savefig()
         plt.close()
 
-    sys.exit()
     for dataset, df in roller_dict.iteritems():
-        print dataset
+        print(dataset)
         gs = '../../' + dataset.replace("timeseries.tsv","goldstandard.tsv")
         current_frame = df['results_frame']
 

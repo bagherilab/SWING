@@ -152,14 +152,14 @@ def save_ptest_output(savepath, p, o_values, avg, stdev, zscores):
     np.save(savepath+'/stdev_%i' % permutations, stdev)
     np.save(savepath+'/zscores_%i' % permutations, zscores)
 
-def low_mem_ptest(p, o_values, permutepath, savepath):
+def low_mem_ptest(d, yMatrix, p, o_values, permutepath, savepath, num_variables):
     permutations = p
     averages = np.zeros(o_values.shape)
     stdevs = np.zeros(o_values.shape)
     zscores = np.zeros(o_values.shape)
     for ii in range(num_variables):
         tic = time.clock()
-        print "Doing %i permutations for gene %i" %(permutations,ii)
+        print("Doing %i permutations for gene %i" %(permutations,ii))
         cur_y = yMatrix[:, ii]
         cur_betas = np.array(np.matrix(o_values[:, ii]).T)
         for pp in range(permutations):
@@ -170,22 +170,22 @@ def low_mem_ptest(p, o_values, permutepath, savepath):
             cur_betas = np.hstack((cur_betas, perm_betas))
         averages[:, ii] = np.mean(cur_betas[:, 1:], 1)
         stdevs[:, ii] = np.std(cur_betas[:, 1:], 1, ddof=1)
-        print time.clock()-tic
+        print(time.clock()-tic)
 
     # Calculate zscores
     zscores = (o_values-averages)/stdevs
 
     save_ptest_output(savepath, p, o_values, averages, stdevs, zscores)
 
-def ptest(p, o_values, savepath):
+def ptest(d, xMatrix, yMatrix, p, o_values, savepath):
     permutations = p
-    print 'Starting %i permutations' %permutations
+    print('Starting %i permutations' %permutations)
     for p in range(permutations):
-        print 'Permutation %i' %p
+        print('Permutation %i' %p)
         x_permuted = shuffle(xMatrix)
         d.run_dionesus(x_permuted, yMatrix, show_output=False)
         o_values = np.dstack((o_values, np.array(d.beta_matrix.copy())))
-    print o_values.shape
+    print(o_values.shape)
 
     # Calculate average
     o_values = o_values[:, :, 0]

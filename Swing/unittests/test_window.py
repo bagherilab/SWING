@@ -4,7 +4,6 @@ import Swing
 import random
 from random import randint
 import numpy.testing as npt
-import pdb
 
 class TestWindow(unittest.TestCase):
     def setUp(self):
@@ -65,7 +64,7 @@ class TestWindow(unittest.TestCase):
         # initialize result dict, which is a dict with mean, n, ss
 
         result = {'n': 0, 'mean': 0, 'ss': 0}
-        new_samples = [randint(0, 100) for r in xrange(5)]
+        new_samples = [randint(0, 100) for r in range(5)]
         new_result = self.test_window.update_variance_1D(result, new_samples)
 
         correct_mean = np.mean(new_samples)
@@ -75,7 +74,7 @@ class TestWindow(unittest.TestCase):
         # initialize result dict, which is a dict with mean, n, ss
 
         result = {'n': 0, 'mean': 0, 'ss': 0}
-        new_samples = [randint(0, 100) for r in xrange(10000)]
+        new_samples = [randint(0, 100) for r in range(10000)]
         new_result = self.test_window.update_variance_1D(result, new_samples)
 
         correct_mean = np.mean(new_samples)
@@ -86,26 +85,26 @@ class TestWindow(unittest.TestCase):
         new_result = {'n': 0, 'mean': 0, 'ss': 0}
         gold_samples = []
 
-        for i in xrange(1000):
-            new_samples = [random.uniform(0.001, 0.009) for r in xrange(10)]
+        for i in range(1000):
+            new_samples = [random.uniform(0.001, 0.009) for r in range(10)]
             gold_samples = gold_samples + new_samples
             new_result = self.test_window.update_variance_1D(new_result, new_samples)
         correct_mean = np.mean(gold_samples)
-        print 'Correct Mean: ', (correct_mean)
-        print 'Calculated Mean: ', (new_result['mean'])
+        print('Correct Mean: ', (correct_mean))
+        print('Calculated Mean: ', (new_result['mean']))
         self.assertEqual("%.12f" % new_result["mean"], "%.12f" % correct_mean)
 
     def test_iterative_variance_calculation(self):
         new_result = {'n': 0, 'mean': 0, 'ss': 0}
         gold_samples = []
 
-        for i in xrange(1000):
-            new_samples = [random.uniform(0.001, 0.009) for r in xrange(10)]
+        for i in range(1000):
+            new_samples = [random.uniform(0.001, 0.009) for r in range(10)]
             gold_samples = gold_samples + new_samples
             new_result = self.test_window.update_variance_1D(new_result, new_samples)
         correct_variance = np.var(gold_samples, ddof=1)
-        print 'Correct Var: ', (correct_variance)
-        print 'Calculated Var: ', (new_result['variance'])
+        print('Correct Var: ', (correct_variance)())
+        print('Calculated Var: ', (new_result['variance']))
         self.assertEqual("%.12f" % new_result["variance"], "%.12f" % correct_variance)
 
 
@@ -113,7 +112,7 @@ class TestWindow(unittest.TestCase):
         # initialize result dict, which is a dict with mean, n, ss
 
         result = {'n': 0, 'mean': 0, 'ss': 0}
-        new_samples = [randint(0, 100) for r in xrange(100)]
+        new_samples = [randint(0, 100) for r in range(100)]
         new_result = self.test_window.update_variance_1D(result, new_samples)
 
         correct_var = np.var(new_samples, ddof=1)
@@ -123,10 +122,10 @@ class TestWindow(unittest.TestCase):
         # initialize result dict, which is a dict with mean, n, ss
 
         result = {'n': 0, 'mean': 0, 'ss': 0}
-        new_samples_A = [randint(0, 100) for r in xrange(2)]
+        new_samples_A = [randint(0, 100) for r in range(2)]
         new_result = self.test_window.update_variance_1D(result, new_samples_A)
 
-        new_samples_B = [randint(0, 100) for r in xrange(2)]
+        new_samples_B = [randint(0, 100) for r in range(2)]
         new_result = self.test_window.update_variance_1D(new_result, new_samples_B)
         combined_samples = new_samples_A + new_samples_B
 
@@ -137,10 +136,10 @@ class TestWindow(unittest.TestCase):
         # initialize result dict, which is a dict with mean, n, ss
 
         result = {'n': 0, 'mean': 0, 'ss': 0}
-        new_samples_A = [randint(0, 10000) for r in xrange(2)]
+        new_samples_A = [randint(0, 10000) for r in range(2)]
         new_result = self.test_window.update_variance_1D(result, new_samples_A)
 
-        new_samples_B = [randint(0, 10000) for r in xrange(2)]
+        new_samples_B = [randint(0, 10000) for r in range(2)]
         new_result = self.test_window.update_variance_1D(new_result, new_samples_B)
         combined_samples = new_samples_A + new_samples_B
 
@@ -176,7 +175,7 @@ class TestWindow(unittest.TestCase):
         A_list = []
 
         combined_samples = np.empty([10, 10])
-        for i in xrange(1000):
+        for i in range(1000):
             new_samples_A = np.random.random((10, 10))
             A_list.append(new_samples_A)
             temp_list = []
@@ -199,7 +198,7 @@ class TestWindow(unittest.TestCase):
         A_list = []
 
         combined_samples = np.empty([10, 10])
-        for i in xrange(1000):
+        for i in range(1000):
             new_samples_A = np.random.random((10, 10))
             A_list.append(new_samples_A)
             temp_list = []
