@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from sklearn import linear_model
-from sklearn.cross_validation import KFold
+from sklearn.model_selection import KFold
 from scipy import integrate
 from scipy import stats
 from sklearn.metrics import mean_squared_error
@@ -339,12 +339,12 @@ class LassoWindow(Window):
         x_data = self.explanatory_data.copy()
         y_data = self.response_data.copy()
         n_elements = len(x_data)
-        kf = KFold(n_elements, n_folds)
+        kf = KFold(n_folds)
 
         press = 0.0
         ss = 0.0
 
-        for train_index, test_index in kf:
+        for train_index, test_index in kf.split(x_data):
             x_train = x_data[train_index]
             y_train = y_data[train_index]
             x_test = x_data[test_index]
