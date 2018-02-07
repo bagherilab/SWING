@@ -7,10 +7,6 @@ from scipy import integrate
 from scipy import stats
 from sklearn.metrics import mean_squared_error
 from .util.utility_module import sum_of_squares
-import scipy
-import sys
-import pdb
-
 from .Window import Window
 
 

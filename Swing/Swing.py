@@ -1,5 +1,4 @@
 import random
-import sys
 import pandas as pd
 import numpy as np
 import warnings
@@ -11,7 +10,7 @@ from .DionesusWindow import DionesusWindow
 from .LassoWindow import LassoWindow
 from .util import utility_module as utility
 from .util.Evaluator import Evaluator
-import pdb
+
 
 class Swing(object):
     """

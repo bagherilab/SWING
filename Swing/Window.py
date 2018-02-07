@@ -1,11 +1,8 @@
 from .util import utility_module as utility
-import sys
 import numpy as np
 import pandas as pd
 from scipy import stats
-import pdb
-import statsmodels.stats.stattools as st
-import statsmodels.stats.diagnostic as std
+
 
 class Window(object):
     """

@@ -3,10 +3,7 @@ from sklearn.cross_decomposition import PLSRegression
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import pandas as pd
-import sys
-import pdb
 from sklearn.decomposition import PCA
-
 from .Window import Window
 from .util import utility_module as utility
 from .util.pls_nipals import vipp
