@@ -14,14 +14,14 @@ from .util.Evaluator import Evaluator
 
 class Swing(object):
     """
-    A thing that grabs different timepoints of data, can set window and step size.
+    An object that grabs different timepoints of data, can set window and step size.
 
     """
 
     def __init__(self, file_path, gene_start=None, gene_end=None, time_label="Time", separator="\t",
                  window_type="RandomForest", step_size=1, min_lag=0, max_lag=0, window_width=3, sub_dict = None):
         """
-        Initialize the roller object. Read the file and put it into a pandas dataframe
+        Initialize the SWING object. Read the file and put it into a pandas dataframe
         :param file_path: string
             File to read
         :param gene_start: int
@@ -232,7 +232,7 @@ class Swing(object):
             if (index + self.window_width) > self.overall_width:
                 raise Exception('Window created that is out of bounds based on parameters')
 
-            explanatory_indices = utility.get_explanatory_indices(index, min_lag=self.min_lag, max_lag=self.max_lag)
+            explanatory_indices = self.get_explanatory_indices(index)
             raw_window = self.get_window_raw(index, random_time)
             if explanatory_indices is not None:
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
@@ -243,7 +243,7 @@ class Swing(object):
                 window_list.append(window_object)
 
         self.window_list = window_list
-
+    
     def create_custom_windows(self, tf_list,random_time=False):
         """
         Create window objects for the roller to use, with set explanatory variables (such as TFs)
@@ -275,7 +275,7 @@ class Swing(object):
             if (index + self.window_width) > self.overall_width:
                 raise Exception('Window created that is out of bounds based on parameters')
 
-            explanatory_indices = utility.get_explanatory_indices(index, min_lag=self.min_lag, max_lag=self.max_lag)
+            explanatory_indices = self.get_explanatory_indices(index)
             raw_window = self.get_window_raw(index, random_time)
             if explanatory_indices is not None:
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
@@ -550,8 +550,6 @@ class Swing(object):
         return self.averaged_ranks
 
     def zscore_all_data(self):
-        #todo: this should not replace raw_data, a new feature should be made
-        #todo: scipy.stats.zscore can be used with the correct parameters for 1 line
         """
         Zscore the data in a data-frame
 
@@ -796,6 +794,22 @@ class Swing(object):
         node_list = df.columns.tolist()
         node_list.pop(0)
         return node_list
+
+    def get_explanatory_indices(index):
+        # In append mode, the start index can always be 0
+        if self.max_lag is None:
+            start_idx = 0
+        else:
+            start_idx = max(index-self.max_lag, 0)
+        end_index = max(index-self.min_lag+1, 0)
+
+        explanatory_indices = range(start_idx, end_index)
+
+        # If the maximum lag required is greater than the index, this window must be left censored
+        if len(explanatory_indices) == 0 or self.max_lag > index:
+            explanatory_indices = None
+
+        return explanatory_indices
 
     def score(self, sorted_edge_list, gold_standard_file=None):
         """
