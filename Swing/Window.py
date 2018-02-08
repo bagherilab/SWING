@@ -1,7 +1,7 @@
-from .util import utility_module as utility
 import numpy as np
 import pandas as pd
 from scipy import stats
+from .util import utility_module as util
 
 
 class Window(object):
@@ -46,8 +46,8 @@ class Window(object):
         self.genes = self.df.columns.values
         self.n_genes = len(self.genes)
         self.results_table = pd.DataFrame()
-        self.edge_list = utility.make_possible_edge_list(self.explanatory_labels, self.response_labels)
 
+        self.edge_list = util.make_possible_edge_list(self.explanatory_labels, self.response_labels)
         # Add edge list to edge table
         self.results_table['regulator-target'] = self.edge_list
         self.roller_data = roller_data
@@ -320,19 +320,7 @@ class Window(object):
         averages = self.response_data.mean(axis=0)
         return averages
 
-    def crag_window(self, model_params):
-        model = model_params['model']
-        response_train = model_params['response']
-        predictor_train = model_params['predictor']
-        response_col = model_params['col_index']
-        training_scores = utility.get_cragging_scores(model, predictor_train, response_train)
-        test_data = utility.get_test_set(self.data, self.roller_data)
 
-        response_test = test_data.ix[:, response_col].values
-        predictor_test = test_data.drop(test_data.columns[response_col],1).values
-
-        test_scores = utility.get_cragging_scores(model,predictor_test, response_test)
-        return((training_scores, test_scores))
 
     ###################################################################################################################
     # Abstract methods listed below

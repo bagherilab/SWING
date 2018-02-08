@@ -8,13 +8,13 @@ from .Window import Window
 from .RFRWindow import RandomForestRegressionWindow
 from .DionesusWindow import DionesusWindow
 from .LassoWindow import LassoWindow
-from .util import utility_module as utility
 from .util.Evaluator import Evaluator
+from .util import utility_module as util
 
 
 class Swing(object):
     """
-    An object that grabs different timepoints of data, can set window and step size.
+    An object that grabs different timepoints of data, can set window and step size, and makes an edge-list.
 
     """
 
@@ -519,36 +519,6 @@ class Swing(object):
                 window.make_edge_table(calc_mse=self.calc_mse)
         return self.window_list
 
-    def average_rank(self, rank_by, ascending):
-        """
-        Average window edge ranks
-
-        Called by:
-            pipeline
-
-
-        :param rank_by: string
-            The parameter to rank edges by
-        :param ascending: Bool
-        :return:
-        """
-        if self.window_type == "Lasso":
-            ranked_result_list = []
-            for window in self.window_list:
-                ranked_result = window.rank_results(rank_by, ascending)
-                ranked_result_list.append(ranked_result)
-        if self.window_type == "RandomForest":
-            ranked_result_list = []
-            for window in self.window_list:
-                ranked_result = window.sort_edges(rank_by)
-                ranked_result_list.append(ranked_result)
-
-        aggr_ranks = utility.average_rank(ranked_result_list, rank_by + "-rank")
-        # sort tables by mean rank in ascending order
-        mean_sorted_edge_list = aggr_ranks.sort(columns="mean-rank", axis=0)
-        self.averaged_ranks = mean_sorted_edge_list
-        return self.averaged_ranks
-
     def zscore_all_data(self):
         """
         Zscore the data in a data-frame
@@ -717,9 +687,9 @@ class Swing(object):
         # Calculate the full set of potential edges with TF list if it is provided.
 
         if self.tf_list is not None:
-            full_edge_set = set(utility.make_possible_edge_list(np.array(self.tf_list), self.gene_list, self_edges=self_edges))
+            full_edge_set = set(util.make_possible_edge_list(np.array(self.tf_list), self.gene_list, self_edges=self_edges))
         else:
-            full_edge_set = set(utility.make_possible_edge_list(self.gene_list, self.gene_list, self_edges=self_edges))
+            full_edge_set = set(util.make_possible_edge_list(self.gene_list, self.gene_list, self_edges=self_edges))
 
         # Identify edges that could exist, but do not appear in the inferred list
         edge_diff = full_edge_set.difference(edge_set)
@@ -755,6 +725,34 @@ class Swing(object):
             warnings.warn(message)
         return
 
+    def _make_possible_edge_list(self,parents, children, self_edges=True):
+        """
+        Create a list of all the possible edges between parents and children
+
+        :param parents: array
+            labels for parents
+        :param children: array
+            labels for children
+        :param self_edges:
+        :return: array, length = parents * children
+            array of parent, child combinations for all possible edges
+        """
+        parent_index = range(len(parents))
+        child_index = range(len(children))
+
+        a, b = np.meshgrid(parent_index, child_index)
+        parent_list = list(parents[a.flatten()])
+        child_list = list(children[b.flatten()])
+        possible_edge_list = None
+        if self_edges:
+            possible_edge_list = list(zip(parent_list, child_list))
+
+        elif not self_edges:
+            possible_edge_list = [x for x in zip(parent_list, child_list) if x[0] != x[1]]
+
+        return possible_edge_list
+
+
     def make_sort_df(self, df, sort_by='mean'):
         """
         Calculate the mean for each edge
@@ -778,24 +776,13 @@ class Swing(object):
         print("[DONE]")
         return sort_df
 
-    def calc_edge_importance_cutoff(self, df):
-        """
-        Calculate the importance threshold to filter edges on
-        :param df:
-        :return: dict
-        """
-        x, y = utility.elbow_criteria(range(0, len(df.Importance)), df.Importance.values.astype(np.float64))
-        elbow_dict = {'num_edges':x, 'importance_threshold':y}
-
-        return elbow_dict
-
     def get_samples(self):
         df=pd.read_csv(self.file_path,sep='\t')
         node_list = df.columns.tolist()
         node_list.pop(0)
         return node_list
 
-    def get_explanatory_indices(index):
+    def get_explanatory_indices(self,index):
         # In append mode, the start index can always be 0
         if self.max_lag is None:
             start_idx = 0

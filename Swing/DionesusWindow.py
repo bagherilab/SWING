@@ -5,7 +5,6 @@ from sklearn.metrics import mean_squared_error
 import pandas as pd
 from sklearn.decomposition import PCA
 from .Window import Window
-from .util import utility_module as utility
 from .util.pls_nipals import vipp
 
 
@@ -210,7 +209,7 @@ class DionesusWindow(Window):
 
         explained_variances_mean = np.mean(explained_variances, axis = 0)
         test_pcs = [x for x in range(1, len(explained_variances_mean)+1)]
-        elbow_x, elbow_y = utility.elbow_criteria(test_pcs, explained_variances_mean)
+        elbow_x, elbow_y = self._elbow_criteria(test_pcs, explained_variances_mean)
         self.num_pcs = elbow_x
 
     def fit_window(self, pcs=3, crag=False, calc_mse=False):
@@ -270,6 +269,29 @@ class DionesusWindow(Window):
             self.training_scores.append(training_scores)
             self.test_scores.append(test_scores)
         return coeff_matrix, vip_matrix, model_list
+    
+    def _elbow_criteria(self,x,y):
+        x = np.array(x)
+        y = np.array(y)
+        # Slope between elbow endpoints
+        m1 = point_slope(x[0], y[0], x[-1], y[-1])
+        # Intercept
+        b1 = y[0] - m1*x[0]
+
+        # Slope for perpendicular lines
+        m2 = -1/m1
+
+        # Calculate intercepts for perpendicular lines that go through data point
+        b_array = y-m2*x
+        x_perp = (b_array-b1)/(m1-m2)
+        y_perp = m1*x_perp+b1
+
+        # Calculate where the maximum distance to a line connecting endpoints is
+        distances = np.sqrt((x_perp-x)**2+(y_perp-y)**2)
+        index_max = np.where(distances==np.max(distances))[0][0]
+        elbow_x = x[index_max]
+        elbow_y = y[index_max]
+        return elbow_x, elbow_y
 
     def get_coeffs(self, num_pcs=2, x_data=None, y_data=None, crag=False, calc_mse=False):
         """

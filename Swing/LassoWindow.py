@@ -6,7 +6,6 @@ from sklearn.model_selection import KFold
 from scipy import integrate
 from scipy import stats
 from sklearn.metrics import mean_squared_error
-from .util.utility_module import sum_of_squares
 from .Window import Window
 
 
@@ -353,7 +352,7 @@ class LassoWindow(Window):
 
             # Calculate PRESS and SS
             current_press = np.sum(np.power(y_predicted - y_test, 2), axis=0)
-            current_ss = sum_of_squares(y_test)
+            current_ss = self.sum_of_squares(y_test)
 
             press += current_press
             ss += current_ss
@@ -506,5 +505,17 @@ class LassoWindow(Window):
             df['MSE_diff'] = self.edge_mse_diff.flatten()
 
         return df
+
+    def _sum_of_squares(self,x, axis=0):
+        """
+        Calculate the sum of the squares for each column
+        :param x: array-like
+            The data matrix for which the sum of squares is taken
+        :return: float or array-like
+            The sum of squares, columnwise or total
+        """
+        column_mean = np.mean(x, axis=axis)
+        sse = np.sum(np.power(x - column_mean, 2), axis=axis)
+        return sse
 
 
