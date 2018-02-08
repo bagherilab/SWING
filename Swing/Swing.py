@@ -98,10 +98,6 @@ class Swing(object):
         total_windows = int((self.overall_width - self.window_width + 1.0) / self.step_size)
         return(int(total_windows))
 
-    def filter_noisy(self):
-        for window in self.window_list:
-            window.remove_stationary_ts = True
-
     def get_window_raw(self, start_index, random_time=False):
         """
         Select a window from the full data set. This is fancy data-frame slicing
@@ -343,20 +339,6 @@ class Swing(object):
                                         response_dict)
 
         return window_obj
-
-    def initialize_windows(self):
-        """
-        deprecated - Initialize window parameters and do a preliminary fit
-
-        Called by:
-        Currently only called by unittest Swing/unittests/test_roller.py
-
-        todo: delete
-        :return:
-        """
-        for window in self.window_list:
-            window.initialize_params()
-            window.fit_window()
 
     def rank_windows(self, n_permutes=10, n_bootstraps=10, n_alphas=20, noise=0.2):
         """
