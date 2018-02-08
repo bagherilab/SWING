@@ -639,7 +639,7 @@ class Swing(object):
                 current_df['adj_imp'] = np.abs(current_df['Importance'])
             elif self.window_type is "Lasso":
                 current_df['adj_imp'] = np.abs(current_df['Stability'])
-            current_df.sort(['adj_imp'], ascending=False, inplace=True)
+            current_df.sort_values(['adj_imp'], ascending=False, inplace=True)
             #current_df.sort(['Importance'], ascending=False, inplace=True)
             current_df['Rank'] = np.arange(0, len(current_df))
 
@@ -771,9 +771,9 @@ class Swing(object):
         sort_df = pd.DataFrame.from_dict(temp_dict, orient='index')
         sort_df.columns = [sort_field]
         if sort_by.lower() == 'rank':
-            sort_df.sort(sort_field, ascending=True, inplace=True)
+            sort_df.sort_values(sort_field, ascending=True, inplace=True)
         else:
-            sort_df.sort(sort_field, ascending=False, inplace=True)
+            sort_df.sort_values(sort_field, ascending=False, inplace=True)
         #sort_df['mean_importance'] = stats.zscore(sort_df['mean_importance'], ddof=1)
         sort_df.index.name = 'regulator-target'
         sort_df = sort_df.reset_index()

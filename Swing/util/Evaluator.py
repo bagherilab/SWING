@@ -1,18 +1,16 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import integrate
 import pandas as pd
-import pdb
 
 class Evaluator:
 
     def __init__(self, gold_standard_file = None, sep='\t', interaction_label='regulator-target', node_list=None, subnet_dict=None):
-        
+
         if (gold_standard_file is None) and (subnet_dict is not None):
             self.gs_flat = pd.Series(subnet_dict['true_edges'])
             self.full_list = pd.Series(subnet_dict['edges'])
-        
+
         elif gold_standard_file is not None:
             self.gs_file = gold_standard_file
             self.gs_data = pd.read_csv(gold_standard_file, sep=sep, header=None)
@@ -43,7 +41,7 @@ class Evaluator:
                 geneids.pop(0)
                 self.targets = geneids
                 self.full_list = tuple(map(tuple, self.possible_edges(np.array(self.regulators), np.array(self.targets))))
-                
+
             elif node_list:
                 all_regulators = np.array(list(set(node_list)))
                 self.full_list = tuple(map(tuple,self.possible_edges(all_regulators,all_regulators)))
@@ -251,18 +249,6 @@ if __name__ == '__main__':
     random = np.array([np.sum(reference.Edge_Exists.values)/256.0]*256)
     prediction = create_link_list(df2, weights)
     p, r, area = calc_pr(reference, prediction)
-    plt.plot(r, p, r, random, 'r')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.legend(['Test', 'Random'])
-    print(area)
-    plt.show()
-
+    print(p, r, area)
     tpr, fpr, area = self.calc_roc(reference, prediction)
-    plt.plot(fpr, tpr, fpr, fpr, 'r')
-    plt.xlabel('FPR')
-    plt.ylabel('TPR')
-    plt.legend(['Test', 'Random'], loc='best')
-    print(area)
-    plt.show()
-# Load adjacency matrices
+    print(tpr, fpr, area)
