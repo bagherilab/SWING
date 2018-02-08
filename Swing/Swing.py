@@ -538,7 +538,7 @@ class Swing(object):
         for ww, window in enumerate(self.window_list):
             # Get the edges and associated values in table form
             current_df = window.make_edge_table()
-            
+
             current_df['adj_imp'] = np.abs(current_df['Importance'])
 
             #current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
@@ -562,44 +562,7 @@ class Swing(object):
         df['Lag'] = df.C_window - df.P_window
         self.full_edge_list = df.copy()
         print("[DONE]")
-        return
-
-    def compile_roller_edges2(self, self_edges=False):
-        """
-        Edges across all windows will be compiled into a single edge list
-        :return:
-        """
-        print("Compiling all model edges...")
-        df = None
-        for ww, window in enumerate(self.window_list):
-            # Get the edges and associated values in table form
-            current_df = window.make_edge_table()
-
-            current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
-            #change
-            if ww == 8:
-                current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])*2
-
-            if self.window_type is "Dionesus":
-                current_df['adj_imp'] = np.abs(current_df['Importance'])
-            elif self.window_type is "Lasso":
-                current_df['adj_imp'] = np.abs(current_df['Stability'])
-            current_df.sort(['adj_imp'], ascending=False, inplace=True)
-            #current_df.sort(['Importance'], ascending=False, inplace=True)
-            current_df['Rank'] = np.arange(0, len(current_df))
-
-            if df is None:
-                df = current_df.copy()
-            else:
-                df = df.append(current_df.copy(), ignore_index=True)
-
-        if not self_edges:
-            df = df[df.Parent != df.Child]
-
-        df['Edge'] = list(zip(df.Parent, df.Child))
-        df['Lag'] = df.C_window - df.P_window
-        self.full_edge_list = df.copy()
-        print("[DONE]")
+        #todo: returns nothing?
         return
 
     def make_static_edge_dict(self, true_edges, self_edges=False, lag_method='max_median'):
