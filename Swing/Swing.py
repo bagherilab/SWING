@@ -134,31 +134,6 @@ class Swing(object):
         data = self.norm_data[self.norm_data[self.time_label].isin(time_window)]
         return data
 
-    def set_window(self, width):
-        """
-        Set the window width
-
-        Called by:
-            pipeline
-
-        :param width: int
-
-        :return:
-        """
-        self.window_width = width
-
-    def set_step(self, step):
-        """
-        Set the window step size
-
-        Called by:
-
-
-        :param step:
-        :return:
-        """
-
-        self.step_size = step
 
     # need to do something about this method. keep for now, but currently need a "preprocess" method.
     def remove_blank_rows(self):
@@ -176,33 +151,6 @@ class Swing(object):
         ind = np.where(np.isnan(sums))[0]
         self.raw_data.iloc[:, ind] = 0
 
-    def get_n_genes(self):
-        """
-        Calculate the number of genes in the data set
-
-        Called by:
-
-
-        :return:
-        """
-
-        return len(self.raw_data.columns) - 1
-
-    def set_min_lag(self, min_lag):
-        """
-        Set the minimum lag for the roller
-        :param min_lag:
-        :return:
-        """
-        self.min_lag = min_lag
-
-    def set_max_lag(self, max_lag):
-        """
-        Set the minimum lag for the roller
-        :param min_lag:
-        :return:
-        """
-        self.max_lag = max_lag
 
     def create_windows(self, random_time=False):
         """
