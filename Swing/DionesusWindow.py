@@ -32,7 +32,7 @@ class DionesusWindow(Window):
         self.freq_matrix = None
         self.edge_stability_auc = None
 
-    def make_edge_table(self, calc_mse=False):
+    def make_edge_table(self):
         """
 
         :return:
@@ -62,9 +62,6 @@ class DionesusWindow(Window):
 
         # Remove any self edges
         df = df[~((df['Parent'] == df['Child']) & (df['P_window'] == df['C_window']))]
-
-        if calc_mse:
-            df['MSE_diff'] = self.edge_mse_diff.flatten()
 
         return df
 
@@ -178,7 +175,7 @@ class DionesusWindow(Window):
         # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule, maximizing the second derivative or maximum curvature.
         temp = self.remove_stationary_ts
         self.remove_stationary_ts = False
-        result_tuple = self.get_coeffs(calc_mse=False)
+        result_tuple = self.get_coeffs()
         self.remove_stationary_ts = temp
         mse_diff = result_tuple[2]
         model_list = result_tuple[3]
@@ -212,7 +209,7 @@ class DionesusWindow(Window):
         elbow_x, elbow_y = self._elbow_criteria(test_pcs, explained_variances_mean)
         self.num_pcs = elbow_x
 
-    def fit_window(self, pcs=3, calc_mse=False):
+    def fit_window(self, pcs=3):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
 
@@ -220,7 +217,7 @@ class DionesusWindow(Window):
         """
         if self.num_pcs is not None:
             pcs = self.num_pcs
-        result_tuple = self.get_coeffs(pcs, calc_mse = calc_mse)
+        result_tuple = self.get_coeffs(pcs)
 
         self.beta_coefficients = result_tuple[0]
         self.vip = result_tuple[1]
@@ -287,7 +284,7 @@ class DionesusWindow(Window):
         elbow_y = y[index_max]
         return elbow_x, elbow_y
 
-    def get_coeffs(self, num_pcs=2, x_data=None, y_data=None, calc_mse=False):
+    def get_coeffs(self, num_pcs=2, x_data=None, y_data=None):
         """
         :param x_data:
         :param n_trees:
@@ -302,32 +299,11 @@ class DionesusWindow(Window):
 
         coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
         vip_matrix = coeff_matrix.copy()
-        mse_matrix = None
 
         # Calculate a model for each target column
         for target_y, x_matrix, insert_index in model_inputs:
             coeff_matrix, vip_matrix, model_list = self._fitstack_coeffs(num_pcs, coeff_matrix, vip_matrix, model_list,
                                                                          x_matrix, target_y, insert_index)
-
-
-            if calc_mse:
-                base_mse = mean_squared_error(model_list[insert_index]['model'].predict(x_matrix), target_y)
-                f_coeff_matrix, f_model_list, f_model_inputs = self._initialize_coeffs(data=x_matrix, y_data=y_data, x_labels=self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-                f_vip_matrix = f_coeff_matrix.copy()
-                mse_list = []
-                for idx in range(x_matrix.shape[1]):
-                    adj_x_matrix = np.delete(x_matrix, idx, axis=1)
-                    f_coeff_matrix, f_vip_matrix, f_model_list = self._fitstack_coeffs(num_pcs, f_coeff_matrix,
-                                                                                       f_vip_matrix, f_model_list,
-                                                                                       adj_x_matrix, target_y,
-                                                                                       idx)
-                    mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
-                    mse_list.append(mse_diff)
-                if mse_matrix is None:
-                    mse_matrix = np.array(mse_list)
-                else:
-                    mse_matrix = np.vstack((mse_matrix, np.array(mse_list)))
-
 
         coeff_dataframe = pd.DataFrame(coeff_matrix, index=self.response_labels, columns=self.explanatory_labels)
         coeff_dataframe.index.name = 'Child'
@@ -336,4 +312,4 @@ class DionesusWindow(Window):
         importance_dataframe = pd.DataFrame(vip_matrix, index=self.response_labels, columns=self.explanatory_labels)
         importance_dataframe.index.name = 'Child'
         importance_dataframe.columns.name = 'Parent'
-        return coeff_dataframe, importance_dataframe, mse_matrix, model_list, model_inputs
+        return coeff_dataframe, importance_dataframe, model_list, model_inputs

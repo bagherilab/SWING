@@ -53,7 +53,6 @@ class Swing(object):
         self.step_size = step_size
         self.time_label = time_label
 
-        self.calc_mse = False
         self.alpha = None
         self.tf_list = None
 
@@ -433,7 +432,7 @@ class Swing(object):
                     print("Fitting window index %i against the following window indices: ")
                 else:
                     print("Fitting window {} of {}".format(window.nth_window, self.get_n_windows()))
-            window.fit_window(calc_mse=self.calc_mse)
+            window.fit_window()
 
         return self.window_list
 
@@ -460,7 +459,7 @@ class Swing(object):
                 window.make_edge_table()
         if self.window_type == "RandomForest":
             for window in self.window_list:
-                window.make_edge_table(calc_mse=self.calc_mse)
+                window.make_edge_table()
         return self.window_list
 
     def zscore_all_data(self):
@@ -538,12 +537,8 @@ class Swing(object):
         df = None
         for ww, window in enumerate(self.window_list):
             # Get the edges and associated values in table form
-            current_df = window.make_edge_table(calc_mse=self.calc_mse)
-
-            # Only retain edges if the MSE_diff is negative
-            if self.calc_mse:
-                current_df = current_df[current_df['MSE_diff'] < 0]
-
+            current_df = window.make_edge_table()
+            
             current_df['adj_imp'] = np.abs(current_df['Importance'])
 
             #current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
@@ -578,12 +573,7 @@ class Swing(object):
         df = None
         for ww, window in enumerate(self.window_list):
             # Get the edges and associated values in table form
-            current_df = window.make_edge_table(calc_mse=self.calc_mse)
-
-            # Only retain edges if the MSE_diff is negative
-            if self.calc_mse:
-                current_df = current_df[current_df['MSE_diff'] < 0]
-
+            current_df = window.make_edge_table()
 
             current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
             #change

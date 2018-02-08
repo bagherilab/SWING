@@ -190,7 +190,7 @@ class LassoWindow(Window):
             raise ValueError("alpha must be float (>=0) or None")
         return
 
-    def fit_window(self, calc_mse=False):
+    def fit_window(self):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
         :return:
@@ -199,7 +199,7 @@ class LassoWindow(Window):
         if self.alpha is None:
             raise ValueError("window alpha value must be set before the window can be fit")
 
-        self.beta_coefficients, self.edge_mse_diff = self.get_coeffs(self.alpha, calc_mse=calc_mse)
+        self.beta_coefficients= self.get_coeffs(self.alpha)
 
     def get_null_alpha(self, max_expected_alpha=1e4, min_step_size=1e-9, s_edges=False):
         """
@@ -418,7 +418,7 @@ class LassoWindow(Window):
 
         return(parsed_array, target_indices)
 
-    def get_coeffs(self, alpha, x_data=None, y_data=None, calc_mse=False):
+    def get_coeffs(self, alpha, x_data=None, y_data=None):
         """
         :param x_data:
         :param n_trees:
@@ -433,7 +433,6 @@ class LassoWindow(Window):
 
 
         coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-        mse_matrix = None
         # Calculate a model for each target column
         for target_y, x_matrix, insert_index in model_inputs:
             if len(self.earlier_windows) != 1:
@@ -443,29 +442,12 @@ class LassoWindow(Window):
                 target_indices = [insert_index]
             coeff_matrix, vip_matrix = self._fitstack_coeffs(alpha, coeff_matrix, model_list, x_matrix, target_y, target_indices)
 
-
-
-            if calc_mse:
-                base_mse = mean_squared_error(model_list[insert_index]['model'].predict(x_matrix), target_y)
-                f_coeff_matrix, f_model_list = self._initialize_coeffs(data=x_matrix, y_data=y_data, x_labels=self.explanatory_labels,y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-                mse_list = []
-                for idx in range(x_matrix.shape[1]):
-                    adj_x_matrix = np.delete(x_matrix, idx, axis=1)
-                    f_coeff_matrix, f_model_list, f_model_inputs = self._fitstack_coeffs(alpha, f_coeff_matrix, f_model_list,
-                                                                         adj_x_matrix, target_y, idx)
-                    mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
-                    mse_list.append(mse_diff)
-                if mse_matrix is None:
-                    mse_matrix = np.array(mse_list)
-                else:
-                    mse_matrix = np.vstack((mse_matrix, np.array(mse_list)))
-
         importance_dataframe = pd.DataFrame(coeff_matrix, index=self.response_labels, columns=self.explanatory_labels)
         importance_dataframe.index.name = 'Child'
         importance_dataframe.columns.name = 'Parent'
-        return importance_dataframe, mse_matrix
+        return importance_dataframe
 
-    def make_edge_table(self, calc_mse=False):
+    def make_edge_table(self):
         """
 
         :return:
@@ -495,9 +477,6 @@ class LassoWindow(Window):
 
         # Remove any self edges
         df = df[~((df['Parent'] == df['Child']) & (df['P_window'] == df['C_window']))]
-
-        if calc_mse:
-            df['MSE_diff'] = self.edge_mse_diff.flatten()
 
         return df
 

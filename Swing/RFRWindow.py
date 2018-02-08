@@ -15,7 +15,7 @@ class RandomForestRegressionWindow(Window):
         self.n_trees = None
         self.n_jobs = None
 
-    def make_edge_table(self, calc_mse=False):
+    def make_edge_table(self):
         """
         Make the edge table
         :return:
@@ -43,8 +43,6 @@ class RandomForestRegressionWindow(Window):
         # Remove any self edges
         df = df[~((df['Parent'] == df['Child']) & (df['P_window'] == df['C_window']))]
 
-        if calc_mse:
-            df['MSE_diff'] = self.edge_mse_diff.flatten()
         return df
 
     def _permute_coeffs(self, zeros, n_permutations, n_jobs):
@@ -123,13 +121,12 @@ class RandomForestRegressionWindow(Window):
             raise ValueError("Number of trees must be int (>=0) or None")
         return
 
-    def fit_window(self, n_jobs=1, calc_mse=False):
+    def fit_window(self, n_jobs=1):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
         :return:
         """
-        self.edge_importance, self.edge_mse_diff = self.get_coeffs(self.n_trees, n_jobs=self.n_jobs,
-                                                                   calc_mse=calc_mse)
+        self.edge_importance = self.get_coeffs(self.n_trees, n_jobs=self.n_jobs)
 
     def _fitstack_coeffs(self, coeff_matrix, model_list, x_matrix, target_y, col_index, n_trees, n_jobs):
 
@@ -155,7 +152,7 @@ class RandomForestRegressionWindow(Window):
 
         return coeff_matrix, model_list
 
-    def get_coeffs(self, n_trees, x_data=None, n_jobs=1, calc_mse=False):
+    def get_coeffs(self, n_trees, x_data=None, n_jobs=1):
         """
         :param x_data:
         :param n_trees:
@@ -169,30 +166,11 @@ class RandomForestRegressionWindow(Window):
 
         coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
 
-        mse_matrix = None
-
         for target_y, x_matrix, insert_index in model_inputs:
             coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, x_matrix, target_y, insert_index,
                                                              n_trees, n_jobs)
 
-
-            if calc_mse:
-                base_mse = mean_squared_error(model_list[insert_index]['model'].predict(x_matrix), target_y)
-
-                f_coeff_matrix, f_model_list, _ = self._initialize_coeffs(data=x_matrix, y_data=y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-                mse_list = []
-                for idx in range(x_matrix.shape[1]):
-                    adj_x_matrix = np.delete(x_matrix, idx, axis=1)
-                    f_coeff_matrix, f_model_list = self._fitstack_coeffs(f_coeff_matrix, f_model_list, adj_x_matrix,
-                                                                         target_y, idx, n_trees, n_jobs)
-                    mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
-                    mse_list.append(mse_diff)
-                if mse_matrix is None:
-                    mse_matrix = np.array(mse_list)
-                else:
-                    mse_matrix = np.vstack((mse_matrix, np.array(mse_list)))
-
         importance_dataframe = pd.DataFrame(coeff_matrix, index=self.response_labels, columns=self.explanatory_labels)
         importance_dataframe.index.name = 'Child'
         importance_dataframe.columns.name = 'Parent'
-        return importance_dataframe, mse_matrix
+        return importance_dataframe
