@@ -122,7 +122,7 @@ class DionesusWindow(Window):
 
         return (self.results_table)
 
-    def run_permutation_test(self, n_permutations=1000, crag=False):
+    def run_permutation_test(self, n_permutations=1000):
 
         # initialize permutation results array
         self.permutation_means = np.empty((self.n_genes, self.n_genes))
@@ -178,7 +178,7 @@ class DionesusWindow(Window):
         # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule, maximizing the second derivative or maximum curvature.
         temp = self.remove_stationary_ts
         self.remove_stationary_ts = False
-        result_tuple = self.get_coeffs(crag=False, calc_mse=False)
+        result_tuple = self.get_coeffs(calc_mse=False)
         self.remove_stationary_ts = temp
         mse_diff = result_tuple[2]
         model_list = result_tuple[3]
@@ -212,7 +212,7 @@ class DionesusWindow(Window):
         elbow_x, elbow_y = self._elbow_criteria(test_pcs, explained_variances_mean)
         self.num_pcs = elbow_x
 
-    def fit_window(self, pcs=3, crag=False, calc_mse=False):
+    def fit_window(self, pcs=3, calc_mse=False):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
 
@@ -220,14 +220,14 @@ class DionesusWindow(Window):
         """
         if self.num_pcs is not None:
             pcs = self.num_pcs
-        result_tuple = self.get_coeffs(pcs, crag = crag, calc_mse = calc_mse)
+        result_tuple = self.get_coeffs(pcs, calc_mse = calc_mse)
 
         self.beta_coefficients = result_tuple[0]
         self.vip = result_tuple[1]
         self.edge_mse_diff = result_tuple[2]
         self.model_list = result_tuple[3]
 
-    def _fitstack_coeffs(self, n_pcs, coeff_matrix, vip_matrix, model_list, x_matrix, target_y, col_index, crag=False):
+    def _fitstack_coeffs(self, n_pcs, coeff_matrix, vip_matrix, model_list, x_matrix, target_y, col_index):
         """
         :param n_pcs:
         :param coeff_matrix:
@@ -236,7 +236,6 @@ class DionesusWindow(Window):
         :param x_matrix:
         :param target_y:
         :param col_index:
-        :param crag:
         :return:
         """
         pls = PLSRegression(n_pcs, False)
@@ -263,11 +262,6 @@ class DionesusWindow(Window):
         coeff_matrix = np.vstack((coeff_matrix, coeffs))
         vip_matrix = np.vstack((vip_matrix, vips))
 
-        # scoping issues
-        if crag:
-            training_scores, test_scores = self.crag_window(model_params)
-            self.training_scores.append(training_scores)
-            self.test_scores.append(test_scores)
         return coeff_matrix, vip_matrix, model_list
     
     def _elbow_criteria(self,x,y):
@@ -293,7 +287,7 @@ class DionesusWindow(Window):
         elbow_y = y[index_max]
         return elbow_x, elbow_y
 
-    def get_coeffs(self, num_pcs=2, x_data=None, y_data=None, crag=False, calc_mse=False):
+    def get_coeffs(self, num_pcs=2, x_data=None, y_data=None, calc_mse=False):
         """
         :param x_data:
         :param n_trees:
@@ -313,7 +307,7 @@ class DionesusWindow(Window):
         # Calculate a model for each target column
         for target_y, x_matrix, insert_index in model_inputs:
             coeff_matrix, vip_matrix, model_list = self._fitstack_coeffs(num_pcs, coeff_matrix, vip_matrix, model_list,
-                                                                         x_matrix, target_y, insert_index, crag=crag)
+                                                                         x_matrix, target_y, insert_index)
 
 
             if calc_mse:
@@ -326,7 +320,7 @@ class DionesusWindow(Window):
                     f_coeff_matrix, f_vip_matrix, f_model_list = self._fitstack_coeffs(num_pcs, f_coeff_matrix,
                                                                                        f_vip_matrix, f_model_list,
                                                                                        adj_x_matrix, target_y,
-                                                                                       idx, crag)
+                                                                                       idx)
                     mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
                     mse_list.append(mse_diff)
                 if mse_matrix is None:

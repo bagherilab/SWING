@@ -47,11 +47,10 @@ class RandomForestRegressionWindow(Window):
             df['MSE_diff'] = self.edge_mse_diff.flatten()
         return df
 
-    def _permute_coeffs(self, zeros, crag, n_permutations, n_jobs):
+    def _permute_coeffs(self, zeros, n_permutations, n_jobs):
         """
 
         :param zeros:
-        :param crag:
         :param n_permutations:
         :param n_jobs:
         :return:
@@ -67,7 +66,7 @@ class RandomForestRegressionWindow(Window):
             permuted_data = self.permute_data(self.explanatory_data)
 
             # fit the data and get coefficients
-            permuted_coeffs, _ = self.get_coeffs(self.n_trees, crag=crag, x_data=permuted_data, n_jobs=n_jobs)
+            permuted_coeffs, _ = self.get_coeffs(self.n_trees, x_data=permuted_data, n_jobs=n_jobs)
             dummy_list = [permuted_coeffs]
             result = self.update_variance_2D(result, dummy_list)
 
@@ -75,10 +74,8 @@ class RandomForestRegressionWindow(Window):
         self.permutation_sd = np.sqrt(result['variance'].copy())
         self.permutation_p_values = self.calc_p_value()
 
-    def run_permutation_test(self, crag=False, n_permutations=1000, n_jobs=1):
+    def run_permutation_test(self, n_permutations=1000, n_jobs=1):
         """
-
-        :param crag:
         :param n_permutations:
         :param n_jobs:
         :return:
@@ -88,7 +85,7 @@ class RandomForestRegressionWindow(Window):
         self.permutation_sd = np.empty(self.edge_importance.shape)
         zeros = np.zeros(self.edge_importance.shape)
 
-        self._permute_coeffs(zeros, crag=crag, n_permutations=n_permutations, n_jobs=n_jobs)
+        self._permute_coeffs(zeros, n_permutations=n_permutations, n_jobs=n_jobs)
 
     def calc_p_value(self, value=None, mean=None, sd=None):
         """
@@ -126,15 +123,15 @@ class RandomForestRegressionWindow(Window):
             raise ValueError("Number of trees must be int (>=0) or None")
         return
 
-    def fit_window(self, crag=False, n_jobs=1, calc_mse=False):
+    def fit_window(self, n_jobs=1, calc_mse=False):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
         :return:
         """
-        self.edge_importance, self.edge_mse_diff = self.get_coeffs(self.n_trees, crag=crag, n_jobs=self.n_jobs,
+        self.edge_importance, self.edge_mse_diff = self.get_coeffs(self.n_trees, n_jobs=self.n_jobs,
                                                                    calc_mse=calc_mse)
 
-    def _fitstack_coeffs(self, coeff_matrix, model_list, x_matrix, target_y, col_index, n_trees, n_jobs, crag):
+    def _fitstack_coeffs(self, coeff_matrix, model_list, x_matrix, target_y, col_index, n_trees, n_jobs):
 
         # Initialize the random forest object
         rfr = RandomForestRegressor(n_estimators=n_trees, n_jobs=n_jobs, max_features="sqrt")
@@ -155,17 +152,10 @@ class RandomForestRegressionWindow(Window):
             importance_vector = np.insert(importance_vector, col_index, 0)
 
         coeff_matrix = np.vstack((coeff_matrix, importance_vector))
-        # there's some scoping issues here. cragging needs the roller's raw data but the window does not know what
-        # roller contains (outside scope). have to pass in the roller's raw data and save it somehow :/
-
-        if crag:
-            training_scores, test_scores = self.crag_window(model_params)
-            self.training_scores.append(training_scores)
-            self.test_scores.append(test_scores)
 
         return coeff_matrix, model_list
 
-    def get_coeffs(self, n_trees, crag=False, x_data=None, n_jobs=1, calc_mse=False):
+    def get_coeffs(self, n_trees, x_data=None, n_jobs=1, calc_mse=False):
         """
         :param x_data:
         :param n_trees:
@@ -183,7 +173,7 @@ class RandomForestRegressionWindow(Window):
 
         for target_y, x_matrix, insert_index in model_inputs:
             coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, x_matrix, target_y, insert_index,
-                                                             n_trees, n_jobs, crag)
+                                                             n_trees, n_jobs)
 
 
             if calc_mse:
@@ -194,7 +184,7 @@ class RandomForestRegressionWindow(Window):
                 for idx in range(x_matrix.shape[1]):
                     adj_x_matrix = np.delete(x_matrix, idx, axis=1)
                     f_coeff_matrix, f_model_list = self._fitstack_coeffs(f_coeff_matrix, f_model_list, adj_x_matrix,
-                                                                         target_y, idx, n_trees, n_jobs, crag)
+                                                                         target_y, idx, n_trees, n_jobs)
                     mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
                     mse_list.append(mse_diff)
                 if mse_matrix is None:

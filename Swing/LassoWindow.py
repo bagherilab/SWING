@@ -73,7 +73,7 @@ class LassoWindow(Window):
 
         return self.results_table
 
-    def _permute_coeffs(self, zeros, crag=False, n_permutations=10):
+    def _permute_coeffs(self, zeros, n_permutations=10):
         result = {'n': zeros.copy(), 'mean': zeros.copy(), 'ss': zeros.copy()}
         # inner loop: permute the window N number of times
         for nth_perm in range(0, n_permutations):
@@ -84,7 +84,7 @@ class LassoWindow(Window):
             permuted_data = self.permute_data(self.explanatory_data)
 
             # fit the data and get coefficients
-            permuted_coeffs, _ = self.get_coeffs(self.alpha, x_data=permuted_data, crag=crag)
+            permuted_coeffs, _ = self.get_coeffs(self.alpha, x_data=permuted_data)
             dummy_list = [permuted_coeffs]
             result = self.update_variance_2D(result, dummy_list)
 
@@ -92,7 +92,7 @@ class LassoWindow(Window):
         self.permutation_sd = np.sqrt(result['variance'].copy())
         self.permutation_p_values = self.calc_p_value()
 
-    def run_permutation_test(self, n_permutations=10, crag=False):
+    def run_permutation_test(self, n_permutations=10):
         # initialize permutation results array
         self.permutation_means = np.empty((self.n_genes, self.n_genes))
         self.permutation_sd = np.empty((self.n_genes, self.n_genes))
@@ -190,7 +190,7 @@ class LassoWindow(Window):
             raise ValueError("alpha must be float (>=0) or None")
         return
 
-    def fit_window(self, crag=False, calc_mse=False):
+    def fit_window(self, calc_mse=False):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
         :return:
@@ -199,7 +199,7 @@ class LassoWindow(Window):
         if self.alpha is None:
             raise ValueError("window alpha value must be set before the window can be fit")
 
-        self.beta_coefficients, self.edge_mse_diff = self.get_coeffs(self.alpha, crag=crag, calc_mse=calc_mse)
+        self.beta_coefficients, self.edge_mse_diff = self.get_coeffs(self.alpha, calc_mse=calc_mse)
 
     def get_null_alpha(self, max_expected_alpha=1e4, min_step_size=1e-9, s_edges=False):
         """
@@ -368,11 +368,11 @@ class LassoWindow(Window):
         else:
             return q_squared, model_q_squared
 
-    def _fitstack_coeffs(self, alpha, coeff_matrix, model_list, x_matrix, target_y, col_index, crag=False):
+    def _fitstack_coeffs(self, alpha, coeff_matrix, model_list, x_matrix, target_y, col_index):
         """
 
         example call:
-        coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, all_data, col_index, n_trees, n_jobs,crag)
+        coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, all_data, col_index, n_trees, n_jobs)
         """
         # Initialize the model
         clf = linear_model.Lasso(alpha)
@@ -396,11 +396,6 @@ class LassoWindow(Window):
         # Stack coefficients
         coeff_matrix = np.vstack((coeff_matrix, coeffs))
 
-        if crag:
-            training_scores, test_scores = self.crag_window(model_params)
-            self.training_scores.append(training_scores)
-            self.test_scores.append(test_scores)
-
         return coeff_matrix, model_list
 
     def remove_self_edges(self, data_array, insert_index):
@@ -423,7 +418,7 @@ class LassoWindow(Window):
 
         return(parsed_array, target_indices)
 
-    def get_coeffs(self, alpha, crag=False, x_data=None, y_data=None, calc_mse=False):
+    def get_coeffs(self, alpha, x_data=None, y_data=None, calc_mse=False):
         """
         :param x_data:
         :param n_trees:
@@ -446,7 +441,7 @@ class LassoWindow(Window):
 
             else:
                 target_indices = [insert_index]
-            coeff_matrix, vip_matrix = self._fitstack_coeffs(alpha, coeff_matrix, model_list, x_matrix, target_y, target_indices, crag=crag)
+            coeff_matrix, vip_matrix = self._fitstack_coeffs(alpha, coeff_matrix, model_list, x_matrix, target_y, target_indices)
 
 
 
@@ -457,7 +452,7 @@ class LassoWindow(Window):
                 for idx in range(x_matrix.shape[1]):
                     adj_x_matrix = np.delete(x_matrix, idx, axis=1)
                     f_coeff_matrix, f_model_list, f_model_inputs = self._fitstack_coeffs(alpha, f_coeff_matrix, f_model_list,
-                                                                         adj_x_matrix, target_y, idx, crag)
+                                                                         adj_x_matrix, target_y, idx)
                     mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
                     mse_list.append(mse_diff)
                 if mse_matrix is None:

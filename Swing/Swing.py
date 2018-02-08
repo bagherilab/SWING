@@ -53,7 +53,6 @@ class Swing(object):
         self.step_size = step_size
         self.time_label = time_label
 
-        self.crag = False
         self.calc_mse = False
         self.alpha = None
         self.tf_list = None
@@ -358,7 +357,7 @@ class Swing(object):
         """
         for window in self.window_list:
             window.initialize_params()
-            window.fit_window(crag=self.crag)
+            window.fit_window()
 
     def rank_windows(self, n_permutes=10, n_bootstraps=10, n_alphas=20, noise=0.2):
         """
@@ -379,7 +378,7 @@ class Swing(object):
         :return:
         """
         for window in self.window_list:
-            window.run_permutation_test(n_permutes, crag=False)
+            window.run_permutation_test(n_permutes)
             window.run_bootstrap(n_bootstraps, n_alphas, noise)
             window.make_edge_table()
 
@@ -434,7 +433,7 @@ class Swing(object):
                     print("Fitting window index %i against the following window indices: ")
                 else:
                     print("Fitting window {} of {}".format(window.nth_window, self.get_n_windows()))
-            window.fit_window(crag=self.crag, calc_mse=self.calc_mse)
+            window.fit_window(calc_mse=self.calc_mse)
 
         return self.window_list
 
@@ -451,19 +450,16 @@ class Swing(object):
         """
         if self.window_type == "Dionesus":
             for window in self.window_list:
-                #window.run_permutation_test(n_permutations=permutation_n, crag=False)
                 window.make_edge_table()
 
         if self.window_type == "Lasso":
             for window in self.window_list:
-                window.run_permutation_test(n_permutations=permutation_n, crag=False)
+                window.run_permutation_test(n_permutations=permutation_n)
                 print("Running bootstrap...")
                 window.run_bootstrap(n_bootstraps=n_bootstraps)
                 window.make_edge_table()
         if self.window_type == "RandomForest":
             for window in self.window_list:
-                #print("Running permutation on window {}...".format(window.nth_window))
-                #window.run_permutation_test(n_permutations=permutation_n, crag=False)
                 window.make_edge_table(calc_mse=self.calc_mse)
         return self.window_list
 
