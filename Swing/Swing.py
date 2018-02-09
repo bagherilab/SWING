@@ -548,7 +548,7 @@ class Swing(object):
         #todo: returns nothing?
         return
 
-    def make_static_edge_dict(self, true_edges, self_edges=False, lag_method='max_median'):
+    def make_static_edge_dict(self, self_edges=False, lag_method='max_median'):
         """
         Make a dictionary of edges
         :return:

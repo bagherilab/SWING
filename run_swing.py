@@ -1,6 +1,5 @@
 import pandas as pd
 from Swing import Swing
-from Swing.util.Evaluator import Evaluator
 
 # Load data
 gene_start_column = 1
@@ -32,10 +31,7 @@ sg.compile_roller_edges(self_edges=False)
 
 
 # Load the reference standard for scoring in silico predictions
-evaluator = Evaluator(gold_standard_file, '\t')
-true_edges = evaluator.gs_flat.tolist()
-
-sg.make_static_edge_dict(true_edges, self_edges=False, lag_method='mean_mean')
+sg.make_static_edge_dict(self_edges=False, lag_method='mean_mean')
 ranked_edges = sg.make_sort_df(sg.edge_dict)
 
 roc_dict, pr_dict = sg.score(ranked_edges, gold_standard_file=gold_standard_file)
