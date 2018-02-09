@@ -98,6 +98,7 @@ class Swing(object):
         total_windows = int((self.overall_width - self.window_width + 1.0) / self.step_size)
         return(int(total_windows))
 
+
     def get_window_raw(self, start_index, random_time=False):
         """
         Select a window from the full data set. This is fancy data-frame slicing
@@ -687,10 +688,7 @@ class Swing(object):
         :return:
         """
         print("Scoring model...", end='')
-        if gold_standard_file is None:
-            current_gold_standard = self.file_path.replace("timeseries.tsv","goldstandard.tsv")
-        else:
-            current_gold_standard = gold_standard_file
+        current_gold_standard = gold_standard_file
 
         evaluator = Evaluator(current_gold_standard, '\t', node_list=self.get_samples())
         tpr, fpr, auroc = evaluator.calc_roc(sorted_edge_list)
