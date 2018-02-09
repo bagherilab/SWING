@@ -19,8 +19,8 @@ class DionesusWindow(Window):
 
     """
 
-    def __init__(self, dataframe, window_info, roller_data, td_window, explanatory_dict, response_dict):
-        super(DionesusWindow, self).__init__(dataframe, window_info, roller_data,  td_window, explanatory_dict,
+    def __init__(self, dataframe, window_info, td_window, explanatory_dict, response_dict):
+        super(DionesusWindow, self).__init__(dataframe, window_info, td_window, explanatory_dict,
                                              response_dict)
         self.num_pcs = None
 

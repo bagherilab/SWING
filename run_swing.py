@@ -14,7 +14,7 @@ k_min = 1
 k_max = 3
 w = 10
 method = 'RandomForest'
-trees = 100
+trees = 10
 
 # Initialize a SWING object
 sg = Swing(file_path, gene_start_column, gene_end, time_label, separator, min_lag=k_min,
@@ -25,8 +25,8 @@ sg.create_windows()
 sg.optimize_params()
 
 sg.fit_windows(n_trees=trees, show_progress=False, n_jobs=-1)
-sg.rank_edges(permutation_n=10)
-sg.compile_roller_edges(self_edges=False)
+sg.rank_edges(permutation_n=1)
+sg.compile_edges(self_edges=False)
 
 sg.make_static_edge_dict(self_edges=False, lag_method='mean_mean')
 ranked_edges = sg.make_sort_df(sg.edge_dict)

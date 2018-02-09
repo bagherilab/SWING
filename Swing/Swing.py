@@ -96,8 +96,7 @@ class Swing(object):
         :return: int
         """
         total_windows = int((self.overall_width - self.window_width + 1.0) / self.step_size)
-        return(int(total_windows))
-
+        return int(total_windows)
 
     def get_window_raw(self, start_index, random_time=False):
         """
@@ -129,7 +128,6 @@ class Swing(object):
         data = self.norm_data[self.norm_data[self.time_label].isin(time_window)]
         return data
 
-
     # need to do something about this method. keep for now, but currently need a "preprocess" method.
     def remove_blank_rows(self):
         """
@@ -146,10 +144,9 @@ class Swing(object):
         ind = np.where(np.isnan(sums))[0]
         self.raw_data.iloc[:, ind] = 0
 
-
     def create_windows(self, random_time=False):
         """
-        Create window objects for the roller to use
+        Create window objects for SWING to use
 
         Called by:
             pipeline
@@ -189,7 +186,7 @@ class Swing(object):
     
     def create_custom_windows(self, tf_list,random_time=False):
         """
-        Create window objects for the roller to use, with set explanatory variables (such as TFs)
+        Create window objects for SWING to use, with set explanatory variables (such as TFs)
 
         Called by:
             pipeline
@@ -330,13 +327,13 @@ class Swing(object):
         window_obj = None
 
         if self.window_type == "Lasso":
-            window_obj = LassoWindow(dataframe, window_info_dict, self.norm_data, td_window, explanatory_dict,
+            window_obj = LassoWindow(dataframe, window_info_dict, td_window, explanatory_dict,
                                      response_dict)
         elif self.window_type == "RandomForest":
-            window_obj = RandomForestRegressionWindow(dataframe, window_info_dict, self.norm_data, td_window,
+            window_obj = RandomForestRegressionWindow(dataframe, window_info_dict, td_window,
                                                       explanatory_dict, response_dict)
         elif self.window_type == "Dionesus":
-            window_obj = DionesusWindow(dataframe, window_info_dict, self.norm_data, td_window, explanatory_dict,
+            window_obj = DionesusWindow(dataframe, window_info_dict, td_window, explanatory_dict,
                                         response_dict)
 
         return window_obj
@@ -468,7 +465,7 @@ class Swing(object):
         """
         Generate a dictionary of relevant information from a window
             N : the number of data points in this window,
-            time_labels: the names of the time points in a roller model
+            time_labels: the names of the time points
             step_size: the step-size of the current model
             window_size: the size of the window of the current model
             total_windows: the number of windows total
@@ -482,7 +479,7 @@ class Swing(object):
         """
         """for each window, get a dict:
             N : the number of datapoints in this window,
-            time_labels: the names of the timepoints in a roller model
+            time_labels: the names of the timepoints
             step_size: the step-size of the current model
             window_size: the size of the window of the current model
             total_windows: the number of windows total
@@ -511,7 +508,7 @@ class Swing(object):
                         'window_index': window_index}
         return window_stats
 
-    def compile_roller_edges(self, self_edges=False):
+    def compile_edges(self, self_edges=False):
         """
         Edges across all windows will be compiled into a single edge list
         :return:
