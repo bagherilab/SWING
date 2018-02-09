@@ -148,9 +148,8 @@ class DionesusWindow(Window):
 
         # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule, maximizing the second derivative or maximum curvature.
         result_tuple = self.get_coeffs()
-        mse_diff = result_tuple[2]
-        model_list = result_tuple[3]
-        model_inputs = result_tuple[4]
+        model_list = result_tuple[2]
+        model_inputs = result_tuple[3]
 
         explained_variances = None
         size_test = []
@@ -192,8 +191,7 @@ class DionesusWindow(Window):
 
         self.beta_coefficients = result_tuple[0]
         self.vip = result_tuple[1]
-        self.edge_mse_diff = result_tuple[2]
-        self.model_list = result_tuple[3]
+        self.model_list = result_tuple[2]
 
     def _fitstack_coeffs(self, n_pcs, coeff_matrix, vip_matrix, model_list, x_matrix, target_y, col_index):
         """

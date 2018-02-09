@@ -56,7 +56,6 @@ class Window(object):
         self.permutation_means = None
         self.permutation_sd = None
         self.permutation_p_values = None
-        self.edge_mse_diff = None
 
         """
         The training score is a list of descriptors for how well the model fit the training data for each response
