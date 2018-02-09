@@ -1,6 +1,5 @@
 import pandas as pd
 from Swing import Swing
-
 # Load data
 gene_start_column = 1
 time_label = "Time"
@@ -29,8 +28,6 @@ sg.fit_windows(n_trees=trees, show_progress=False, n_jobs=-1)
 sg.rank_edges(permutation_n=10)
 sg.compile_roller_edges(self_edges=False)
 
-
-# Load the reference standard for scoring in silico predictions
 sg.make_static_edge_dict(self_edges=False, lag_method='mean_mean')
 ranked_edges = sg.make_sort_df(sg.edge_dict)
 
