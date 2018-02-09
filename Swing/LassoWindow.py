@@ -6,7 +6,6 @@ from sklearn.model_selection import KFold
 from scipy import integrate
 from scipy import stats
 from sklearn.metrics import mean_squared_error
-from .util.utility_module import sum_of_squares
 from .Window import Window
 
 
@@ -37,44 +36,7 @@ class LassoWindow(Window):
         self.freq_matrix = None
         self.edge_stability_auc = None
 
-    def sort_edges(self, method="p_value"):
-        """
-        Sort the edge table based on the selected edge ranking method
-        :param method: str
-            Which method to use for ranking the edges
-        :return:
-
-        Called by:
-            Swing.average_rank()
-        """
-        if self.edge_table is None:
-            raise ValueError("The edge table must be created before getting edges")
-        temp_edge_table = self.edge_table.copy()
-        if method == "p_value":
-            temp_edge_table.sort(columns=['p_value', 'stability'], ascending=[True, False], inplace=True)
-        elif method == "stability":
-            temp_edge_table.sort(columns=['stability', 'p_value'], ascending=[False, True], inplace=True)
-
-        return temp_edge_table['regulator-target'].values
-
-    def rank_results(self, rank_by, ascending=False):
-        rank_column_name = rank_by + "-rank"
-        ##rank edges with an actual beta value first until further notice ##
-        valid_indices = self.results_table['B'] != 0
-        valid_window = self.results_table[valid_indices]
-        valid_window[rank_column_name] = valid_window[rank_by].rank(method="dense", ascending=ascending)
-        edge_n = len(valid_window.index)
-
-        invalid_indices = self.results_table['B'] == 0
-        invalid_window = self.results_table[invalid_indices]
-        invalid_window[rank_column_name] = invalid_window[rank_by].rank(method="dense", ascending=ascending)
-        invalid_window[rank_column_name] = invalid_window[rank_column_name] + edge_n
-        self.results_table = valid_window.append(invalid_window)
-        self.results_table = self.results_table.sort(columns=rank_column_name, axis=0)
-
-        return self.results_table
-
-    def _permute_coeffs(self, zeros, crag=False, n_permutations=10):
+    def _permute_coeffs(self, zeros, n_permutations=10):
         result = {'n': zeros.copy(), 'mean': zeros.copy(), 'ss': zeros.copy()}
         # inner loop: permute the window N number of times
         for nth_perm in range(0, n_permutations):
@@ -85,15 +47,15 @@ class LassoWindow(Window):
             permuted_data = self.permute_data(self.explanatory_data)
 
             # fit the data and get coefficients
-            permuted_coeffs, _ = self.get_coeffs(self.alpha, x_data=permuted_data, crag=crag)
+            permuted_coeffs, _ = self.get_coeffs(self.alpha, x_data=permuted_data)
             dummy_list = [permuted_coeffs]
             result = self.update_variance_2D(result, dummy_list)
 
         self.permutation_means = result['mean'].copy()
         self.permutation_sd = np.sqrt(result['variance'].copy())
-        self.permutation_p_values = self.calc_p_value()
+        self.permutation_p_values = self._calc_p_value()
 
-    def run_permutation_test(self, n_permutations=10, crag=False):
+    def run_permutation_test(self, n_permutations=10):
         # initialize permutation results array
         self.permutation_means = np.empty((self.n_genes, self.n_genes))
         self.permutation_sd = np.empty((self.n_genes, self.n_genes))
@@ -102,7 +64,7 @@ class LassoWindow(Window):
         # initialize running calculation
         self._permute_coeffs(zeros=zeros, n_permutations=n_permutations)
 
-    def calc_p_value(self, value=None, mean=None, sd=None):
+    def _calc_p_value(self, value=None, mean=None, sd=None):
         if value is None:
             value = self.beta_coefficients.copy()
         if mean is None:
@@ -156,6 +118,21 @@ class LassoWindow(Window):
 
         return boot_matrix
 
+    def add_noise_to_values(self, window_values, max_random=0.2):
+        """
+        Add uniform noise to each value
+        :param window: dataframe
+
+        :param max_random: float
+            Amount of noise to add to each value, plus or minus
+        :return: array
+
+        """
+
+        noise = np.random.uniform(low=1 - max_random, high=1 + max_random, size=window_values.shape)
+        noisy_values = np.multiply(window_values, noise)
+        return noisy_values
+
     def calc_edge_freq(self):
         "This is agnostic to the edge sign, only whether it exists"
         edge_exists = self.bootstrap_matrix != 0
@@ -191,7 +168,7 @@ class LassoWindow(Window):
             raise ValueError("alpha must be float (>=0) or None")
         return
 
-    def fit_window(self, crag=False, calc_mse=False):
+    def fit_window(self):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
         :return:
@@ -200,7 +177,7 @@ class LassoWindow(Window):
         if self.alpha is None:
             raise ValueError("window alpha value must be set before the window can be fit")
 
-        self.beta_coefficients, self.edge_mse_diff = self.get_coeffs(self.alpha, crag=crag, calc_mse=calc_mse)
+        self.beta_coefficients= self.get_coeffs(self.alpha)
 
     def get_null_alpha(self, max_expected_alpha=1e4, min_step_size=1e-9, s_edges=False):
         """
@@ -353,7 +330,7 @@ class LassoWindow(Window):
 
             # Calculate PRESS and SS
             current_press = np.sum(np.power(y_predicted - y_test, 2), axis=0)
-            current_ss = sum_of_squares(y_test)
+            current_ss = self.sum_of_squares(y_test)
 
             press += current_press
             ss += current_ss
@@ -369,11 +346,11 @@ class LassoWindow(Window):
         else:
             return q_squared, model_q_squared
 
-    def _fitstack_coeffs(self, alpha, coeff_matrix, model_list, x_matrix, target_y, col_index, crag=False):
+    def _fitstack_coeffs(self, alpha, coeff_matrix, model_list, x_matrix, target_y, col_index):
         """
 
         example call:
-        coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, all_data, col_index, n_trees, n_jobs,crag)
+        coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, all_data, col_index, n_trees, n_jobs)
         """
         # Initialize the model
         clf = linear_model.Lasso(alpha)
@@ -397,11 +374,6 @@ class LassoWindow(Window):
         # Stack coefficients
         coeff_matrix = np.vstack((coeff_matrix, coeffs))
 
-        if crag:
-            training_scores, test_scores = self.crag_window(model_params)
-            self.training_scores.append(training_scores)
-            self.test_scores.append(test_scores)
-
         return coeff_matrix, model_list
 
     def remove_self_edges(self, data_array, insert_index):
@@ -424,7 +396,7 @@ class LassoWindow(Window):
 
         return(parsed_array, target_indices)
 
-    def get_coeffs(self, alpha, crag=False, x_data=None, y_data=None, calc_mse=False):
+    def get_coeffs(self, alpha, x_data=None, y_data=None):
         """
         :param x_data:
         :param n_trees:
@@ -439,7 +411,6 @@ class LassoWindow(Window):
 
 
         coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-        mse_matrix = None
         # Calculate a model for each target column
         for target_y, x_matrix, insert_index in model_inputs:
             if len(self.earlier_windows) != 1:
@@ -447,31 +418,14 @@ class LassoWindow(Window):
 
             else:
                 target_indices = [insert_index]
-            coeff_matrix, vip_matrix = self._fitstack_coeffs(alpha, coeff_matrix, model_list, x_matrix, target_y, target_indices, crag=crag)
-
-
-
-            if calc_mse:
-                base_mse = mean_squared_error(model_list[insert_index]['model'].predict(x_matrix), target_y)
-                f_coeff_matrix, f_model_list = self._initialize_coeffs(data=x_matrix, y_data=y_data, x_labels=self.explanatory_labels,y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-                mse_list = []
-                for idx in range(x_matrix.shape[1]):
-                    adj_x_matrix = np.delete(x_matrix, idx, axis=1)
-                    f_coeff_matrix, f_model_list, f_model_inputs = self._fitstack_coeffs(alpha, f_coeff_matrix, f_model_list,
-                                                                         adj_x_matrix, target_y, idx, crag)
-                    mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
-                    mse_list.append(mse_diff)
-                if mse_matrix is None:
-                    mse_matrix = np.array(mse_list)
-                else:
-                    mse_matrix = np.vstack((mse_matrix, np.array(mse_list)))
+            coeff_matrix, vip_matrix = self._fitstack_coeffs(alpha, coeff_matrix, model_list, x_matrix, target_y, target_indices)
 
         importance_dataframe = pd.DataFrame(coeff_matrix, index=self.response_labels, columns=self.explanatory_labels)
         importance_dataframe.index.name = 'Child'
         importance_dataframe.columns.name = 'Parent'
-        return importance_dataframe, mse_matrix
+        return importance_dataframe
 
-    def make_edge_table(self, calc_mse=False):
+    def make_edge_table(self):
         """
 
         :return:
@@ -502,9 +456,18 @@ class LassoWindow(Window):
         # Remove any self edges
         df = df[~((df['Parent'] == df['Child']) & (df['P_window'] == df['C_window']))]
 
-        if calc_mse:
-            df['MSE_diff'] = self.edge_mse_diff.flatten()
-
         return df
+
+    def _sum_of_squares(self,x, axis=0):
+        """
+        Calculate the sum of the squares for each column
+        :param x: array-like
+            The data matrix for which the sum of squares is taken
+        :return: float or array-like
+            The sum of squares, columnwise or total
+        """
+        column_mean = np.mean(x, axis=axis)
+        sse = np.sum(np.power(x - column_mean, 2), axis=axis)
+        return sse
 
 

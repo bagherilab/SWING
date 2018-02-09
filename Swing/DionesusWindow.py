@@ -5,7 +5,6 @@ from sklearn.metrics import mean_squared_error
 import pandas as pd
 from sklearn.decomposition import PCA
 from .Window import Window
-from .util import utility_module as utility
 from .util.pls_nipals import vipp
 
 
@@ -33,7 +32,7 @@ class DionesusWindow(Window):
         self.freq_matrix = None
         self.edge_stability_auc = None
 
-    def make_edge_table(self, calc_mse=False):
+    def make_edge_table(self):
         """
 
         :return:
@@ -64,20 +63,7 @@ class DionesusWindow(Window):
         # Remove any self edges
         df = df[~((df['Parent'] == df['Child']) & (df['P_window'] == df['C_window']))]
 
-        if calc_mse:
-            df['MSE_diff'] = self.edge_mse_diff.flatten()
-
         return df
-
-    def sort_edges(self, method="importance"):
-        if self.results_table is None:
-            raise ValueError("The edge table must be created before getting edges")
-        if method == "p_value":
-            self.results_table.sort(columns=['p_value', 'importance'], ascending=[True, False], inplace=True)
-        elif method == "importance":
-            self.results_table.sort(columns=['importance', 'p_value'], ascending=[False, True], inplace=True)
-
-        return self.results_table['regulator-target'].values
 
     def generate_results_table(self):
 
@@ -106,24 +92,8 @@ class DionesusWindow(Window):
         self.results_table = valid_window
         return (self.results_table)
 
-    def rank_results(self, rank_by, ascending=False):
-        rank_column_name = rank_by + "-rank"
-        # rank edges with an actual beta value first until further notice ##
-        valid_indices = self.results_table['B'] != 0
-        valid_window = self.results_table[valid_indices]
-        valid_window[rank_column_name] = valid_window[rank_by].rank(method="dense", ascending=ascending)
-        edge_n = len(valid_window.index)
 
-        invalid_indices = self.results_table['B'] == 0
-        invalid_window = self.results_table[invalid_indices]
-        invalid_window[rank_column_name] = invalid_window[rank_by].rank(method="dense", ascending=ascending)
-        invalid_window[rank_column_name] += edge_n
-        self.results_table = valid_window.append(invalid_window)
-        self.results_table = self.results_table.sort(columns=rank_column_name, axis=0)
-
-        return (self.results_table)
-
-    def run_permutation_test(self, n_permutations=1000, crag=False):
+    def run_permutation_test(self, n_permutations=1000):
 
         # initialize permutation results array
         self.permutation_means = np.empty((self.n_genes, self.n_genes))
@@ -152,9 +122,9 @@ class DionesusWindow(Window):
 
         self.permutation_means = result['mean'].copy()
         self.permutation_sd = np.sqrt(result['variance'].copy())
-        self.permutation_p_values = self.calc_p_value()
+        self.permutation_p_values = self._calc_p_value()
 
-    def calc_p_value(self, value=None, mean=None, sd=None):
+    def _calc_p_value(self, value=None, mean=None, sd=None):
         if value is None:
             value = self.beta_coefficients.copy()
         if mean is None:
@@ -177,13 +147,9 @@ class DionesusWindow(Window):
         # calculate the Q2 score using PC=1,2,3,4,5
 
         # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule, maximizing the second derivative or maximum curvature.
-        temp = self.remove_stationary_ts
-        self.remove_stationary_ts = False
-        result_tuple = self.get_coeffs(crag=False, calc_mse=False)
-        self.remove_stationary_ts = temp
-        mse_diff = result_tuple[2]
-        model_list = result_tuple[3]
-        model_inputs = result_tuple[4]
+        result_tuple = self.get_coeffs()
+        model_list = result_tuple[2]
+        model_inputs = result_tuple[3]
 
         explained_variances = None
         size_test = []
@@ -210,10 +176,10 @@ class DionesusWindow(Window):
 
         explained_variances_mean = np.mean(explained_variances, axis = 0)
         test_pcs = [x for x in range(1, len(explained_variances_mean)+1)]
-        elbow_x, elbow_y = utility.elbow_criteria(test_pcs, explained_variances_mean)
+        elbow_x, elbow_y = self._elbow_criteria(test_pcs, explained_variances_mean)
         self.num_pcs = elbow_x
 
-    def fit_window(self, pcs=3, crag=False, calc_mse=False):
+    def fit_window(self, pcs=3):
         """
         Set the attributes of the window using expected pipeline procedure and calculate beta values
 
@@ -221,14 +187,13 @@ class DionesusWindow(Window):
         """
         if self.num_pcs is not None:
             pcs = self.num_pcs
-        result_tuple = self.get_coeffs(pcs, crag = crag, calc_mse = calc_mse)
+        result_tuple = self.get_coeffs(pcs)
 
         self.beta_coefficients = result_tuple[0]
         self.vip = result_tuple[1]
-        self.edge_mse_diff = result_tuple[2]
-        self.model_list = result_tuple[3]
+        self.model_list = result_tuple[2]
 
-    def _fitstack_coeffs(self, n_pcs, coeff_matrix, vip_matrix, model_list, x_matrix, target_y, col_index, crag=False):
+    def _fitstack_coeffs(self, n_pcs, coeff_matrix, vip_matrix, model_list, x_matrix, target_y, col_index):
         """
         :param n_pcs:
         :param coeff_matrix:
@@ -237,7 +202,6 @@ class DionesusWindow(Window):
         :param x_matrix:
         :param target_y:
         :param col_index:
-        :param crag:
         :return:
         """
         pls = PLSRegression(n_pcs, False)
@@ -264,14 +228,32 @@ class DionesusWindow(Window):
         coeff_matrix = np.vstack((coeff_matrix, coeffs))
         vip_matrix = np.vstack((vip_matrix, vips))
 
-        # scoping issues
-        if crag:
-            training_scores, test_scores = self.crag_window(model_params)
-            self.training_scores.append(training_scores)
-            self.test_scores.append(test_scores)
         return coeff_matrix, vip_matrix, model_list
+    
+    def _elbow_criteria(self,x,y):
+        x = np.array(x)
+        y = np.array(y)
+        # Slope between elbow endpoints
+        m1 = point_slope(x[0], y[0], x[-1], y[-1])
+        # Intercept
+        b1 = y[0] - m1*x[0]
 
-    def get_coeffs(self, num_pcs=2, x_data=None, y_data=None, crag=False, calc_mse=False):
+        # Slope for perpendicular lines
+        m2 = -1/m1
+
+        # Calculate intercepts for perpendicular lines that go through data point
+        b_array = y-m2*x
+        x_perp = (b_array-b1)/(m1-m2)
+        y_perp = m1*x_perp+b1
+
+        # Calculate where the maximum distance to a line connecting endpoints is
+        distances = np.sqrt((x_perp-x)**2+(y_perp-y)**2)
+        index_max = np.where(distances==np.max(distances))[0][0]
+        elbow_x = x[index_max]
+        elbow_y = y[index_max]
+        return elbow_x, elbow_y
+
+    def get_coeffs(self, num_pcs=2, x_data=None, y_data=None):
         """
         :param x_data:
         :param n_trees:
@@ -286,32 +268,11 @@ class DionesusWindow(Window):
 
         coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
         vip_matrix = coeff_matrix.copy()
-        mse_matrix = None
 
         # Calculate a model for each target column
         for target_y, x_matrix, insert_index in model_inputs:
             coeff_matrix, vip_matrix, model_list = self._fitstack_coeffs(num_pcs, coeff_matrix, vip_matrix, model_list,
-                                                                         x_matrix, target_y, insert_index, crag=crag)
-
-
-            if calc_mse:
-                base_mse = mean_squared_error(model_list[insert_index]['model'].predict(x_matrix), target_y)
-                f_coeff_matrix, f_model_list, f_model_inputs = self._initialize_coeffs(data=x_matrix, y_data=y_data, x_labels=self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
-                f_vip_matrix = f_coeff_matrix.copy()
-                mse_list = []
-                for idx in range(x_matrix.shape[1]):
-                    adj_x_matrix = np.delete(x_matrix, idx, axis=1)
-                    f_coeff_matrix, f_vip_matrix, f_model_list = self._fitstack_coeffs(num_pcs, f_coeff_matrix,
-                                                                                       f_vip_matrix, f_model_list,
-                                                                                       adj_x_matrix, target_y,
-                                                                                       idx, crag)
-                    mse_diff = base_mse - mean_squared_error(f_model_list[idx]['model'].predict(adj_x_matrix), target_y)
-                    mse_list.append(mse_diff)
-                if mse_matrix is None:
-                    mse_matrix = np.array(mse_list)
-                else:
-                    mse_matrix = np.vstack((mse_matrix, np.array(mse_list)))
-
+                                                                         x_matrix, target_y, insert_index)
 
         coeff_dataframe = pd.DataFrame(coeff_matrix, index=self.response_labels, columns=self.explanatory_labels)
         coeff_dataframe.index.name = 'Child'
@@ -320,4 +281,4 @@ class DionesusWindow(Window):
         importance_dataframe = pd.DataFrame(vip_matrix, index=self.response_labels, columns=self.explanatory_labels)
         importance_dataframe.index.name = 'Child'
         importance_dataframe.columns.name = 'Parent'
-        return coeff_dataframe, importance_dataframe, mse_matrix, model_list, model_inputs
+        return coeff_dataframe, importance_dataframe, model_list, model_inputs

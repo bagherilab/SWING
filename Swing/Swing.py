@@ -8,20 +8,20 @@ from .Window import Window
 from .RFRWindow import RandomForestRegressionWindow
 from .DionesusWindow import DionesusWindow
 from .LassoWindow import LassoWindow
-from .util import utility_module as utility
 from .util.Evaluator import Evaluator
+from .util import utility_module as util
 
 
 class Swing(object):
     """
-    A thing that grabs different timepoints of data, can set window and step size.
+    An object that grabs different timepoints of data, can set window and step size, and makes an edge-list.
 
     """
 
     def __init__(self, file_path, gene_start=None, gene_end=None, time_label="Time", separator="\t",
                  window_type="RandomForest", step_size=1, min_lag=0, max_lag=0, window_width=3, sub_dict = None):
         """
-        Initialize the roller object. Read the file and put it into a pandas dataframe
+        Initialize the SWING object. Read the file and put it into a pandas dataframe
         :param file_path: string
             File to read
         :param gene_start: int
@@ -53,8 +53,6 @@ class Swing(object):
         self.step_size = step_size
         self.time_label = time_label
 
-        self.crag = False
-        self.calc_mse = False
         self.alpha = None
         self.tf_list = None
 
@@ -100,9 +98,6 @@ class Swing(object):
         total_windows = int((self.overall_width - self.window_width + 1.0) / self.step_size)
         return(int(total_windows))
 
-    def filter_noisy(self):
-        for window in self.window_list:
-            window.remove_stationary_ts = True
 
     def get_window_raw(self, start_index, random_time=False):
         """
@@ -134,31 +129,6 @@ class Swing(object):
         data = self.norm_data[self.norm_data[self.time_label].isin(time_window)]
         return data
 
-    def set_window(self, width):
-        """
-        Set the window width
-
-        Called by:
-            pipeline
-
-        :param width: int
-
-        :return:
-        """
-        self.window_width = width
-
-    def set_step(self, step):
-        """
-        Set the window step size
-
-        Called by:
-
-
-        :param step:
-        :return:
-        """
-
-        self.step_size = step
 
     # need to do something about this method. keep for now, but currently need a "preprocess" method.
     def remove_blank_rows(self):
@@ -176,33 +146,6 @@ class Swing(object):
         ind = np.where(np.isnan(sums))[0]
         self.raw_data.iloc[:, ind] = 0
 
-    def get_n_genes(self):
-        """
-        Calculate the number of genes in the data set
-
-        Called by:
-
-
-        :return:
-        """
-
-        return len(self.raw_data.columns) - 1
-
-    def set_min_lag(self, min_lag):
-        """
-        Set the minimum lag for the roller
-        :param min_lag:
-        :return:
-        """
-        self.min_lag = min_lag
-
-    def set_max_lag(self, max_lag):
-        """
-        Set the minimum lag for the roller
-        :param min_lag:
-        :return:
-        """
-        self.max_lag = max_lag
 
     def create_windows(self, random_time=False):
         """
@@ -232,7 +175,7 @@ class Swing(object):
             if (index + self.window_width) > self.overall_width:
                 raise Exception('Window created that is out of bounds based on parameters')
 
-            explanatory_indices = utility.get_explanatory_indices(index, min_lag=self.min_lag, max_lag=self.max_lag)
+            explanatory_indices = self.get_explanatory_indices(index)
             raw_window = self.get_window_raw(index, random_time)
             if explanatory_indices is not None:
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
@@ -243,7 +186,7 @@ class Swing(object):
                 window_list.append(window_object)
 
         self.window_list = window_list
-
+    
     def create_custom_windows(self, tf_list,random_time=False):
         """
         Create window objects for the roller to use, with set explanatory variables (such as TFs)
@@ -275,7 +218,7 @@ class Swing(object):
             if (index + self.window_width) > self.overall_width:
                 raise Exception('Window created that is out of bounds based on parameters')
 
-            explanatory_indices = utility.get_explanatory_indices(index, min_lag=self.min_lag, max_lag=self.max_lag)
+            explanatory_indices = self.get_explanatory_indices(index)
             raw_window = self.get_window_raw(index, random_time)
             if explanatory_indices is not None:
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
@@ -398,20 +341,6 @@ class Swing(object):
 
         return window_obj
 
-    def initialize_windows(self):
-        """
-        deprecated - Initialize window parameters and do a preliminary fit
-
-        Called by:
-        Currently only called by unittest Swing/unittests/test_roller.py
-
-        todo: delete
-        :return:
-        """
-        for window in self.window_list:
-            window.initialize_params()
-            window.fit_window(crag=self.crag)
-
     def rank_windows(self, n_permutes=10, n_bootstraps=10, n_alphas=20, noise=0.2):
         """
         Run tests to score and rank windows
@@ -431,7 +360,7 @@ class Swing(object):
         :return:
         """
         for window in self.window_list:
-            window.run_permutation_test(n_permutes, crag=False)
+            window.run_permutation_test(n_permutes)
             window.run_bootstrap(n_bootstraps, n_alphas, noise)
             window.make_edge_table()
 
@@ -486,7 +415,7 @@ class Swing(object):
                     print("Fitting window index %i against the following window indices: ")
                 else:
                     print("Fitting window {} of {}".format(window.nth_window, self.get_n_windows()))
-            window.fit_window(crag=self.crag, calc_mse=self.calc_mse)
+            window.fit_window()
 
         return self.window_list
 
@@ -503,55 +432,20 @@ class Swing(object):
         """
         if self.window_type == "Dionesus":
             for window in self.window_list:
-                #window.run_permutation_test(n_permutations=permutation_n, crag=False)
                 window.make_edge_table()
 
         if self.window_type == "Lasso":
             for window in self.window_list:
-                window.run_permutation_test(n_permutations=permutation_n, crag=False)
+                window.run_permutation_test(n_permutations=permutation_n)
                 print("Running bootstrap...")
                 window.run_bootstrap(n_bootstraps=n_bootstraps)
                 window.make_edge_table()
         if self.window_type == "RandomForest":
             for window in self.window_list:
-                #print("Running permutation on window {}...".format(window.nth_window))
-                #window.run_permutation_test(n_permutations=permutation_n, crag=False)
-                window.make_edge_table(calc_mse=self.calc_mse)
+                window.make_edge_table()
         return self.window_list
 
-    def average_rank(self, rank_by, ascending):
-        """
-        Average window edge ranks
-
-        Called by:
-            pipeline
-
-
-        :param rank_by: string
-            The parameter to rank edges by
-        :param ascending: Bool
-        :return:
-        """
-        if self.window_type == "Lasso":
-            ranked_result_list = []
-            for window in self.window_list:
-                ranked_result = window.rank_results(rank_by, ascending)
-                ranked_result_list.append(ranked_result)
-        if self.window_type == "RandomForest":
-            ranked_result_list = []
-            for window in self.window_list:
-                ranked_result = window.sort_edges(rank_by)
-                ranked_result_list.append(ranked_result)
-
-        aggr_ranks = utility.average_rank(ranked_result_list, rank_by + "-rank")
-        # sort tables by mean rank in ascending order
-        mean_sorted_edge_list = aggr_ranks.sort(columns="mean-rank", axis=0)
-        self.averaged_ranks = mean_sorted_edge_list
-        return self.averaged_ranks
-
     def zscore_all_data(self):
-        #todo: this should not replace raw_data, a new feature should be made
-        #todo: scipy.stats.zscore can be used with the correct parameters for 1 line
         """
         Zscore the data in a data-frame
 
@@ -626,11 +520,7 @@ class Swing(object):
         df = None
         for ww, window in enumerate(self.window_list):
             # Get the edges and associated values in table form
-            current_df = window.make_edge_table(calc_mse=self.calc_mse)
-
-            # Only retain edges if the MSE_diff is negative
-            if self.calc_mse:
-                current_df = current_df[current_df['MSE_diff'] < 0]
+            current_df = window.make_edge_table()
 
             current_df['adj_imp'] = np.abs(current_df['Importance'])
 
@@ -639,7 +529,7 @@ class Swing(object):
                 current_df['adj_imp'] = np.abs(current_df['Importance'])
             elif self.window_type is "Lasso":
                 current_df['adj_imp'] = np.abs(current_df['Stability'])
-            current_df.sort_values(by=['adj_imp'], ascending=False, inplace=True)
+            current_df.sort_values(['adj_imp'], ascending=False, inplace=True)
             #current_df.sort(['Importance'], ascending=False, inplace=True)
             current_df['Rank'] = np.arange(0, len(current_df))
 
@@ -655,49 +545,7 @@ class Swing(object):
         df['Lag'] = df.C_window - df.P_window
         self.full_edge_list = df.copy()
         print("[DONE]")
-        return
-
-    def compile_roller_edges2(self, self_edges=False):
-        """
-        Edges across all windows will be compiled into a single edge list
-        :return:
-        """
-        print("Compiling all model edges...")
-        df = None
-        for ww, window in enumerate(self.window_list):
-            # Get the edges and associated values in table form
-            current_df = window.make_edge_table(calc_mse=self.calc_mse)
-
-            # Only retain edges if the MSE_diff is negative
-            if self.calc_mse:
-                current_df = current_df[current_df['MSE_diff'] < 0]
-
-
-            current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
-            #change
-            if ww == 8:
-                current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])*2
-
-            if self.window_type is "Dionesus":
-                current_df['adj_imp'] = np.abs(current_df['Importance'])
-            elif self.window_type is "Lasso":
-                current_df['adj_imp'] = np.abs(current_df['Stability'])
-            current_df.sort(['adj_imp'], ascending=False, inplace=True)
-            #current_df.sort(['Importance'], ascending=False, inplace=True)
-            current_df['Rank'] = np.arange(0, len(current_df))
-
-            if df is None:
-                df = current_df.copy()
-            else:
-                df = df.append(current_df.copy(), ignore_index=True)
-
-        if not self_edges:
-            df = df[df.Parent != df.Child]
-
-        df['Edge'] = list(zip(df.Parent, df.Child))
-        df['Lag'] = df.C_window - df.P_window
-        self.full_edge_list = df.copy()
-        print("[DONE]")
+        #todo: returns nothing?
         return
 
     def make_static_edge_dict(self, true_edges, self_edges=False, lag_method='max_median'):
@@ -719,9 +567,9 @@ class Swing(object):
         # Calculate the full set of potential edges with TF list if it is provided.
 
         if self.tf_list is not None:
-            full_edge_set = set(utility.make_possible_edge_list(np.array(self.tf_list), self.gene_list, self_edges=self_edges))
+            full_edge_set = set(util.make_possible_edge_list(np.array(self.tf_list), self.gene_list, self_edges=self_edges))
         else:
-            full_edge_set = set(utility.make_possible_edge_list(self.gene_list, self.gene_list, self_edges=self_edges))
+            full_edge_set = set(util.make_possible_edge_list(self.gene_list, self.gene_list, self_edges=self_edges))
 
         # Identify edges that could exist, but do not appear in the inferred list
         edge_diff = full_edge_set.difference(edge_set)
@@ -757,6 +605,34 @@ class Swing(object):
             warnings.warn(message)
         return
 
+    def _make_possible_edge_list(self,parents, children, self_edges=True):
+        """
+        Create a list of all the possible edges between parents and children
+
+        :param parents: array
+            labels for parents
+        :param children: array
+            labels for children
+        :param self_edges:
+        :return: array, length = parents * children
+            array of parent, child combinations for all possible edges
+        """
+        parent_index = range(len(parents))
+        child_index = range(len(children))
+
+        a, b = np.meshgrid(parent_index, child_index)
+        parent_list = list(parents[a.flatten()])
+        child_list = list(children[b.flatten()])
+        possible_edge_list = None
+        if self_edges:
+            possible_edge_list = list(zip(parent_list, child_list))
+
+        elif not self_edges:
+            possible_edge_list = [x for x in zip(parent_list, child_list) if x[0] != x[1]]
+
+        return possible_edge_list
+
+
     def make_sort_df(self, df, sort_by='mean'):
         """
         Calculate the mean for each edge
@@ -780,22 +656,27 @@ class Swing(object):
         print("[DONE]")
         return sort_df
 
-    def calc_edge_importance_cutoff(self, df):
-        """
-        Calculate the importance threshold to filter edges on
-        :param df:
-        :return: dict
-        """
-        x, y = utility.elbow_criteria(range(0, len(df.Importance)), df.Importance.values.astype(np.float64))
-        elbow_dict = {'num_edges':x, 'importance_threshold':y}
-
-        return elbow_dict
-
     def get_samples(self):
         df=pd.read_csv(self.file_path,sep='\t')
         node_list = df.columns.tolist()
         node_list.pop(0)
         return node_list
+
+    def get_explanatory_indices(self,index):
+        # In append mode, the start index can always be 0
+        if self.max_lag is None:
+            start_idx = 0
+        else:
+            start_idx = max(index-self.max_lag, 0)
+        end_index = max(index-self.min_lag+1, 0)
+
+        explanatory_indices = range(start_idx, end_index)
+
+        # If the maximum lag required is greater than the index, this window must be left censored
+        if len(explanatory_indices) == 0 or self.max_lag > index:
+            explanatory_indices = None
+
+        return explanatory_indices
 
     def score(self, sorted_edge_list, gold_standard_file=None):
         """
@@ -807,10 +688,7 @@ class Swing(object):
         :return:
         """
         print("Scoring model...", end='')
-        if gold_standard_file is None:
-            current_gold_standard = self.file_path.replace("timeseries.tsv","goldstandard.tsv")
-        else:
-            current_gold_standard = gold_standard_file
+        current_gold_standard = gold_standard_file
 
         evaluator = Evaluator(current_gold_standard, '\t', node_list=self.get_samples())
         tpr, fpr, auroc = evaluator.calc_roc(sorted_edge_list)
