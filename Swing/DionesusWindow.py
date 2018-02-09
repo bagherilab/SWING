@@ -5,7 +5,6 @@ from sklearn.metrics import mean_squared_error
 import pandas as pd
 from sklearn.decomposition import PCA
 from .Window import Window
-from .util.pls_nipals import vipp
 
 
 class DionesusWindow(Window):
@@ -219,7 +218,7 @@ class DionesusWindow(Window):
         # artificially add a 0 to where the col_index is to prevent self-edges
         coeffs = pls.coef_
         coeffs = np.reshape(coeffs, (len(coeffs),))
-        vips = vipp(x_matrix, target_y, pls.x_scores_, pls.x_weights_)
+        vips = _vipp(x_matrix, target_y, pls.x_scores_, pls.x_weights_)
         vips = np.reshape(vips, (len(vips),))
         if coeff_matrix.shape[1] - len(coeffs) == 1:
             coeffs = np.insert(coeffs, col_index, 0)
@@ -229,7 +228,7 @@ class DionesusWindow(Window):
         vip_matrix = np.vstack((vip_matrix, vips))
 
         return coeff_matrix, vip_matrix, model_list
-    
+
     def _elbow_criteria(self,x,y):
         x = np.array(x)
         y = np.array(y)
@@ -282,3 +281,21 @@ class DionesusWindow(Window):
         importance_dataframe.index.name = 'Child'
         importance_dataframe.columns.name = 'Parent'
         return coeff_dataframe, importance_dataframe, model_list, model_inputs
+
+    def _vipp(x, y, t, w):
+        #initializing		
+        [p, h] = w.shape		
+        co = np.matrix(np.zeros([1, h]))		
+
+        # Calculate s		
+        for ii in range(h):		
+            corr = np.corrcoef(y, t[:, ii], rowvar=0)		
+            co[0, ii] = corr[0, 1]**2		
+            s = np.sum(co)		
+        # Calculate q		
+        # This has been linearized to replace the original nested for loop		
+        w_power = np.power(w, 2)		
+        d = np.multiply(w_power, co)		
+        q = np.sum(d, 1)		
+        vip = np.sqrt(p*q/s)
+        return vip 

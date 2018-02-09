@@ -548,7 +548,7 @@ class Swing(object):
         #todo: returns nothing?
         return
 
-    def make_static_edge_dict(self, true_edges, self_edges=False, lag_method='max_median'):
+    def make_static_edge_dict(self, self_edges=False, lag_method='max_median'):
         """
         Make a dictionary of edges
         :return:
@@ -582,7 +582,7 @@ class Swing(object):
             if idx%1000 ==0:
                 print(str(idx)+" out of "+ str(len(full_edge_set)), end='')
             if edge in edge_diff:
-                self.edge_dict[edge] = {"dataframe": None, "mean_importance": 0, 'real_edge': (edge in true_edges),
+                self.edge_dict[edge] = {"dataframe": None, "mean_importance": 0,
                                         "max_importance": 0, 'max_edge': None, 'lag_importance': 0,
                                         'lag_method': lag_method, 'rank_importance': np.nan, 'adj_importance': 0}
                 continue
@@ -593,8 +593,7 @@ class Swing(object):
             lag_imp = score_method([lump_method(current_df.Importance[current_df.Lag == lag]) for lag in lag_set])
             lag_adj_imp = score_method([lump_method(current_df.adj_imp[current_df.Lag == lag]) for lag in lag_set])
             lag_rank = score_method([lump_method(current_df.Rank[current_df.Lag == lag]) for lag in lag_set])
-            self.edge_dict[edge] = {"dataframe":current_df, "mean_importance":np.mean(current_df.Importance),
-                                    'real_edge':(edge in true_edges), "max_importance":current_df.Importance[max_idx],
+            self.edge_dict[edge] = {"dataframe":current_df, "mean_importance":np.mean(current_df.Importance), "max_importance":current_df.Importance[max_idx],
                                     'max_edge':(current_df.P_window[max_idx], current_df.C_window[max_idx]),
                                     'lag_importance': lag_imp, 'lag_method':lag_method,
                                     'rank_importance': lag_rank, 'adj_importance':lag_adj_imp}
