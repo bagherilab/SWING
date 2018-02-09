@@ -193,8 +193,6 @@ class Swing(object):
 
         :return:
         """
-        #tf_list = ['CBF1','SWI5','ASH1', 'GAL4', 'GAL80']
-        #tf_list = ['G1','G2','G3','G4','G5','G6','G7','G8','G9','G10']
         # Initialize empty lists
         window_list = []
         self.tf_list=tf_list
@@ -220,20 +218,22 @@ class Swing(object):
             if explanatory_indices is not None:
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
 
-                #remove information from explanatory window
+                # remove information from explanatory window
                 to_remove = list(set(explanatory_dict['explanatory_labels'])-set(tf_list))
                 for removed_tf in to_remove:
-                    #remove from explanatory_labels
+                    # remove from explanatory_labels
                     removed_index = np.where(explanatory_dict['explanatory_labels'] == removed_tf)[0][0]
-                    explanatory_dict['explanatory_labels'] = np.delete(explanatory_dict['explanatory_labels'], removed_index)
+                    explanatory_dict['explanatory_labels'] = np.delete(explanatory_dict['explanatory_labels'],
+                                                                       removed_index)
 
-                    #explanatory_window
-                    explanatory_dict['explanatory_window'] = np.delete(explanatory_dict['explanatory_window'], removed_index)
+                    # explanatory_window
+                    explanatory_dict['explanatory_window'] = np.delete(explanatory_dict['explanatory_window'],
+                                                                       removed_index)
 
-                    #explanatory_data
-                    explanatory_dict['explanatory_data'] = np.delete(explanatory_dict['explanatory_data'],removed_index,axis=1)
+                    # explanatory_data
+                    explanatory_dict['explanatory_data'] = np.delete(explanatory_dict['explanatory_data'],
+                                                                     removed_index, axis=1)
                     # not explanatory_times
-
 
                 window_info = {"time_label": self.time_label, "gene_start": self.gene_start, "gene_end": self.gene_end,
                                "nth_window": index}
@@ -249,16 +249,19 @@ class Swing(object):
         :return:
         """
         if self.min_lag > self.max_lag and self.max_lag is not None:
-            raise ValueError('The minimum lag {} cannot be greater than the maximum lag {}'.format(self.min_lag, self.max_lag))
+            raise ValueError('The minimum lag {} cannot be greater than the maximum lag {}'.format(self.min_lag,
+                                                                                                   self.max_lag))
 
         if self.min_lag < 0:
             raise ValueError('The minimum lag {} cannot be negative'.format(self.min_lag))
 
         if self.min_lag > self.get_n_windows():
-            raise ValueError('The minimum lag {} cannot be greater than the number of windows {}'.format(self.min_lag, self.get_n_windows()))
+            raise ValueError('The minimum lag {} cannot be greater '
+                             'than the number of windows {}'.format(self.min_lag, self.get_n_windows()))
 
         if self.max_lag >= self.get_n_windows():
-            raise ValueError('The maximum lag {} cannot be greater than or equal to the number of windows {}'.format(self.max_lag, self.get_n_windows()))
+            raise ValueError('The maximum lag {} cannot be greater '
+                             'than or equal to the number of windows {}'.format(self.max_lag, self.get_n_windows()))
 
     def strip_dataframe(self, dataframe):
         """
@@ -378,12 +381,9 @@ class Swing(object):
             for window in self.window_list:
                 window.initialize_params()
 
-
         return self.window_list
 
-
     def fit_windows(self, pcs=None, alpha=None, n_trees=None, n_jobs=None, show_progress=True):
-        #todo: need a better way to pass parameters to fit functions
         """
         Fit each window in the list
 
@@ -451,15 +451,15 @@ class Swing(object):
 
         :return: z-scored dataframe
         """
-        # zscores all the data
-        raw_dataset = self.raw_data.values.copy()
 
-        zscored_dataset = pd.DataFrame(stats.zscore(raw_dataset, axis=0, ddof=1), index=self.raw_data.index, columns=self.raw_data.columns)
+        zscored_dataset = pd.DataFrame(stats.zscore(self.raw_data.values, axis=0, ddof=1),
+                                       index=self.raw_data.index,
+                                       columns=self.raw_data.columns)
 
         zscored_dataset[self.time_label] = self.raw_data[self.time_label]
         self.norm_data = zscored_dataset
 
-        return(zscored_dataset)
+        return zscored_dataset
 
     def get_window_stats(self):
         """
@@ -486,19 +486,9 @@ class Swing(object):
             window_index: the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window. if the window index is 12, it is the 12th window in the series."""
         current_window = self.get_window_raw()
 
-        """calculate the window index. todo: move into own function later"""
+        # calculate the window index
         min_time = np.amin(current_window[self.time_label])
         window_index = np.where(self.time_vec == min_time) / self.step_size
-        # to calculate the nth window, time vector
-        # index of the time-vector, step size of 2? window 4, step size 2
-        #
-        # total windows = total width (10) - window_width (2) +1 / step size
-        # 10 time points 0 1 2 3 4 5 6 7 8 9
-        # width is 2: 0 and 1
-        # step size is 2
-        # 01, 12, 23, 34, 45, 56, 67, 78, 89
-
-        # todo: so the issue is that total windows (get n windows) is the true number of windows, and window index is the nth -1 window... it would be great to consolidate these concepts but no big deal if they can't be.
 
         window_stats = {'N': len(current_window.index),
                         'time_labels': current_window[self.time_label].unique(),
@@ -521,13 +511,12 @@ class Swing(object):
 
             current_df['adj_imp'] = np.abs(current_df['Importance'])
 
-            #current_df['adj_imp'] = np.abs(current_df['Importance'])*(1-current_df['p_value'])
             if self.window_type is "Dionesus":
                 current_df['adj_imp'] = np.abs(current_df['Importance'])
             elif self.window_type is "Lasso":
                 current_df['adj_imp'] = np.abs(current_df['Stability'])
             current_df.sort_values(['adj_imp'], ascending=False, inplace=True)
-            #current_df.sort(['Importance'], ascending=False, inplace=True)
+
             current_df['Rank'] = np.arange(0, len(current_df))
 
             if df is None:
@@ -542,7 +531,7 @@ class Swing(object):
         df['Lag'] = df.C_window - df.P_window
         self.full_edge_list = df.copy()
         print("[DONE]")
-        #todo: returns nothing?
+
         return
 
     def make_static_edge_dict(self, self_edges=False, lag_method='max_median'):
@@ -575,8 +564,8 @@ class Swing(object):
         lag_importance_score, lag_lump_method = lag_method.split('_')
         score_method = eval('np.'+lag_importance_score)
         lump_method = eval('np.'+lag_lump_method)
-        for idx,edge in enumerate(full_edge_set):
-            if idx%1000 ==0:
+        for idx, edge in enumerate(full_edge_set):
+            if idx % 1000 == 0:
                 print(str(idx)+" out of "+ str(len(full_edge_set)), end='')
             if edge in edge_diff:
                 self.edge_dict[edge] = {"dataframe": None, "mean_importance": 0,
@@ -628,7 +617,6 @@ class Swing(object):
 
         return possible_edge_list
 
-
     def make_sort_df(self, df, sort_by='mean'):
         """
         Calculate the mean for each edge
@@ -646,14 +634,14 @@ class Swing(object):
             sort_df.sort_values(sort_field, ascending=True, inplace=True)
         else:
             sort_df.sort_values(sort_field, ascending=False, inplace=True)
-        #sort_df['mean_importance'] = stats.zscore(sort_df['mean_importance'], ddof=1)
+
         sort_df.index.name = 'regulator-target'
         sort_df = sort_df.reset_index()
         print("[DONE]")
         return sort_df
 
     def get_samples(self):
-        df=pd.read_csv(self.file_path,sep='\t')
+        df = pd.read_csv(self.file_path,sep='\t')
         node_list = df.columns.tolist()
         node_list.pop(0)
         return node_list

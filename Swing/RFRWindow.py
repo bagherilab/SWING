@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
 from scipy import stats
 
 from .Window import Window
@@ -57,8 +56,6 @@ class RandomForestRegressionWindow(Window):
         result = {'n': zeros.copy(), 'mean': zeros.copy(), 'ss': zeros.copy()}
         # inner loop: permute the window N number of times
         for nth_perm in range(0, n_permutations):
-            # if (nth_perm % 200 == 0):
-            # print 'Perm Run: ' +str(nth_perm)
 
             # permute data
             permuted_data = self.permute_data(self.explanatory_data)
@@ -143,6 +140,7 @@ class RandomForestRegressionWindow(Window):
                         'model': rfr}
         model_list.append(model_params)
         importance_vector = rfr.feature_importances_
+
         # artificially add a 0 to where the col_index is
         # to prevent self-edges
         if coeff_matrix.shape[1] - len(importance_vector) == 1:
@@ -164,7 +162,12 @@ class RandomForestRegressionWindow(Window):
         if x_data is None:
             x_data = self.explanatory_data
 
-        coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
+        coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data=x_data,
+                                                                         y_data=y_data,
+                                                                         x_labels=self.explanatory_labels,
+                                                                         y_labels=self.response_labels,
+                                                                         x_window=self.explanatory_window,
+                                                                         nth_window=self.nth_window)
 
         for target_y, x_matrix, insert_index in model_inputs:
             coeff_matrix, model_list = self._fitstack_coeffs(coeff_matrix, model_list, x_matrix, target_y, insert_index,

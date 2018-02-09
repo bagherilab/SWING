@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from scipy import stats
 from .util import utility_module as util
 
 
@@ -80,8 +79,6 @@ class Window(object):
         # For each column randomly choose samples
         resample_values = np.array([np.random.choice(self.explanatory_data[:, ii], size=n) for ii in range(p)]).T
 
-        # resample_window = pd.DataFrame(resample_values, columns=self.df.columns.values.copy(),
-        #                               index=self.df.index.values.copy())
         return resample_values
 
     def initialize_params(self):
@@ -109,12 +106,12 @@ class Window(object):
 
         for x in new_samples:
             n = n + 1
-            # delta = float(x) - mean
+
             old_mean = mean
             mean = old_mean + (float(x) - old_mean) / n
             sum_squares = sum_squares + (float(x) - mean) * (float(x) - old_mean)
 
-        if (n < 2):
+        if n < 2:
             return 0
 
         variance = sum_squares / (n - 1)
@@ -135,7 +132,7 @@ class Window(object):
         #x is a 2D array
         for x in new_samples:
             n += 1
-            #delta = float(x) - mean
+
             old_mean = mean.copy()
             mean = old_mean + np.divide((x - old_mean), n)
             sum_squares = sum_squares + np.multiply((x - mean), (x - old_mean))
@@ -167,7 +164,6 @@ class Window(object):
         # Construct a list of tuples:
         # Tuple = (Response, Explanatory, Index)
 
-
         for col_index, target_y in enumerate(y_data.T):
             x_matrix = data.astype(np.float64,copy=True)
 
@@ -184,8 +180,7 @@ class Window(object):
             input_tuple = (target_y, x_matrix, insert_index)
             model_inputs.append(input_tuple)
 
-        return(coeff_matrix, model_list, model_inputs)
-
+        return coeff_matrix, model_list, model_inputs
 
     ###################################################################################################################
     # Abstract methods listed below
@@ -205,7 +200,6 @@ class Window(object):
 
         """
         pass
-
 
     def get_coeffs(self, *args):
         """

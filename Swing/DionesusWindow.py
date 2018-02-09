@@ -1,7 +1,6 @@
 from scipy import stats
 from sklearn.cross_decomposition import PLSRegression
 import numpy as np
-from sklearn.metrics import mean_squared_error
 import pandas as pd
 from sklearn.decomposition import PCA
 from .Window import Window
@@ -77,9 +76,7 @@ class DionesusWindow(Window):
         aggregated_edges = initial_edges.merge(permutation_mean_edges, on='regulator-target').merge(
             permutation_sd_edges, on='regulator-target').merge(stability_edges, on='regulator-target')
 
-        # sorry, it is a little messy to do the p-value calculations for permutation tests here...
-        # valid_indices = aggregated_edges['p-sd'] != 0
-        # valid_indices = aggregated_edges['B'] != 0
+        # p-value calculation of permutation test
         valid_window = aggregated_edges
         initial_B = valid_window['B']
         sd = valid_window['p-sd']
@@ -89,8 +86,7 @@ class DionesusWindow(Window):
         # calculate t-tailed pvalue
         valid_window['p-value-perm'] = (2 * valid_window['cdf-perm'])
         self.results_table = valid_window
-        return (self.results_table)
-
+        return self.results_table
 
     def run_permutation_test(self, n_permutations=1000):
 
@@ -104,15 +100,12 @@ class DionesusWindow(Window):
 
         # inner loop: permute the window N number of times
         for nth_perm in range(0, n_permutations):
-            # if (nth_perm % 200 == 0):
-            # print 'Perm Run: ' +str(nth_perm)
-
             # permute data
             permuted_data = self.permute_data(self.explanatory_data)
 
             # fit the data and get coefficients
 
-            result_tuple  = self.get_coeffs(x_data=permuted_data)
+            result_tuple = self.get_coeffs(x_data=permuted_data)
             permuted_coeffs = result_tuple[0]
             permuted_vip = result_tuple[1]
 
@@ -145,7 +138,8 @@ class DionesusWindow(Window):
 
         # calculate the Q2 score using PC=1,2,3,4,5
 
-        # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule, maximizing the second derivative or maximum curvature.
+        # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule,
+        # maximizing the second derivative or maximum curvature.
         result_tuple = self.get_coeffs()
         model_list = result_tuple[2]
         model_inputs = result_tuple[3]
@@ -155,8 +149,8 @@ class DionesusWindow(Window):
         for response, explanatory, index in model_inputs:
             size_test.append(explanatory.shape)
 
-        min_dim=sorted(size_test,key=lambda x: x[1], reverse=False)[0][1]
-            
+        min_dim = sorted(size_test, key=lambda x: x[1], reverse=False)[0][1]
+
         for response, explanatory, index in model_inputs:
             pca = PCA()
             pca.fit(explanatory)
@@ -164,17 +158,18 @@ class DionesusWindow(Window):
                 explained_variances = pca.explained_variance_ratio_
             else:
                 try:
-                  explained_variances = np.vstack((explained_variances, pca.explained_variance_ratio_))
+                    explained_variances = np.vstack((explained_variances, pca.explained_variance_ratio_))
                 except ValueError:
                     try:
-                        explained_variances = np.vstack((explained_variances[:,:min_dim], pca.explained_variance_ratio_[:min_dim]))
+                        explained_variances = np.vstack((explained_variances[:, :min_dim],
+                                                         pca.explained_variance_ratio_[:min_dim]))
                     except IndexError:
                         truncated_index = min_dim
-                        explained_variances = np.vstack((explained_variances[:truncated_index], pca.explained_variance_ratio_[:truncated_index]))
+                        explained_variances = np.vstack((explained_variances[:truncated_index],
+                                                         pca.explained_variance_ratio_[:truncated_index]))
 
-
-        explained_variances_mean = np.mean(explained_variances, axis = 0)
-        test_pcs = [x for x in range(1, len(explained_variances_mean)+1)]
+        explained_variances_mean = np.mean(explained_variances, axis=0)
+        test_pcs = [x for x in range(1, len(explained_variances_mean) + 1)]
         elbow_x, elbow_y = self._elbow_criteria(test_pcs, explained_variances_mean)
         self.num_pcs = elbow_x
 
@@ -209,16 +204,16 @@ class DionesusWindow(Window):
         pls.fit(x_matrix, target_y)
 
         model_params = {'col_index': col_index,
-                          'response': target_y,
-                          'predictor': x_matrix,
-                          'model': pls}
+                        'response': target_y,
+                        'predictor': x_matrix,
+                        'model': pls}
 
         model_list.append(model_params)
 
         # artificially add a 0 to where the col_index is to prevent self-edges
         coeffs = pls.coef_
         coeffs = np.reshape(coeffs, (len(coeffs),))
-        vips = _vipp(x_matrix, target_y, pls.x_scores_, pls.x_weights_)
+        vips = self._vipp(x_matrix, target_y, pls.x_scores_, pls.x_weights_)
         vips = np.reshape(vips, (len(vips),))
         if coeff_matrix.shape[1] - len(coeffs) == 1:
             coeffs = np.insert(coeffs, col_index, 0)
@@ -229,28 +224,33 @@ class DionesusWindow(Window):
 
         return coeff_matrix, vip_matrix, model_list
 
-    def _elbow_criteria(self,x,y):
+    def _elbow_criteria(self, x, y):
         x = np.array(x)
         y = np.array(y)
         # Slope between elbow endpoints
-        m1 = point_slope(x[0], y[0], x[-1], y[-1])
+        m1 = self._point_slope(x[0], y[0], x[-1], y[-1])
         # Intercept
-        b1 = y[0] - m1*x[0]
+        b1 = y[0] - m1 * x[0]
 
         # Slope for perpendicular lines
-        m2 = -1/m1
+        m2 = -1 / m1
 
         # Calculate intercepts for perpendicular lines that go through data point
-        b_array = y-m2*x
-        x_perp = (b_array-b1)/(m1-m2)
-        y_perp = m1*x_perp+b1
+        b_array = y - m2 * x
+        x_perp = (b_array - b1) / (m1 - m2)
+        y_perp = m1 * x_perp + b1
 
         # Calculate where the maximum distance to a line connecting endpoints is
-        distances = np.sqrt((x_perp-x)**2+(y_perp-y)**2)
-        index_max = np.where(distances==np.max(distances))[0][0]
+        distances = np.sqrt((x_perp - x) ** 2 + (y_perp - y) ** 2)
+        index_max = np.where(distances == np.max(distances))[0][0]
         elbow_x = x[index_max]
         elbow_y = y[index_max]
         return elbow_x, elbow_y
+
+    @staticmethod
+    def _point_slope(x1, y1, x2, y2):
+        slope = (y2 - y1) / float(x2 - x1)
+        return slope
 
     def get_coeffs(self, num_pcs=2, x_data=None, y_data=None):
         """
@@ -265,7 +265,11 @@ class DionesusWindow(Window):
         if x_data is None:
             x_data = self.explanatory_data
 
-        coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
+        coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data=x_data, y_data=y_data,
+                                                                         x_labels=self.explanatory_labels,
+                                                                         y_labels=self.response_labels,
+                                                                         x_window=self.explanatory_window,
+                                                                         nth_window=self.nth_window)
         vip_matrix = coeff_matrix.copy()
 
         # Calculate a model for each target column
@@ -282,20 +286,21 @@ class DionesusWindow(Window):
         importance_dataframe.columns.name = 'Parent'
         return coeff_dataframe, importance_dataframe, model_list, model_inputs
 
+    @staticmethod
     def _vipp(x, y, t, w):
-        #initializing		
-        [p, h] = w.shape		
-        co = np.matrix(np.zeros([1, h]))		
+        # initializing
+        [p, h] = w.shape
+        co = np.matrix(np.zeros([1, h]))
 
         # Calculate s		
-        for ii in range(h):		
-            corr = np.corrcoef(y, t[:, ii], rowvar=0)		
-            co[0, ii] = corr[0, 1]**2		
-            s = np.sum(co)		
+        for ii in range(h):
+            corr = np.corrcoef(y, t[:, ii], rowvar=0)
+            co[0, ii] = corr[0, 1] ** 2
+            s = np.sum(co)
         # Calculate q		
         # This has been linearized to replace the original nested for loop		
-        w_power = np.power(w, 2)		
-        d = np.multiply(w_power, co)		
-        q = np.sum(d, 1)		
-        vip = np.sqrt(p*q/s)
-        return vip 
+        w_power = np.power(w, 2)
+        d = np.multiply(w_power, co)
+        q = np.sum(d, 1)
+        vip = np.sqrt(p * q / s)
+        return vip

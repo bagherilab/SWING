@@ -5,7 +5,6 @@ from sklearn import linear_model
 from sklearn.model_selection import KFold
 from scipy import integrate
 from scipy import stats
-from sklearn.metrics import mean_squared_error
 from .Window import Window
 
 
@@ -38,8 +37,6 @@ class LassoWindow(Window):
         result = {'n': zeros.copy(), 'mean': zeros.copy(), 'ss': zeros.copy()}
         # inner loop: permute the window N number of times
         for nth_perm in range(0, n_permutations):
-            # if (nth_perm % 200 == 0):
-            # print 'Perm Run: ' +str(nth_perm)
 
             # permute data
             permuted_data = self.permute_data(self.explanatory_data)
@@ -214,8 +211,8 @@ class LassoWindow(Window):
         # Raise exception if Lasso doesn't converge with alpha == 0
         zero_alpha_coeffs, _ = self.get_coeffs(0)
 
-        #if np.count_nonzero(zero_alpha_coeffs) < max_edges:
-        #    raise ValueError('Lasso does not converge with alpha = 0')
+        if np.count_nonzero(zero_alpha_coeffs) < max_edges:
+            raise ValueError('Lasso does not converge with alpha = 0')
 
         # Raise exception if max_expected_alpha does not return all zero betas
         high_alpha_coeffs, _ = self.get_coeffs(max_expected_alpha)
@@ -291,7 +288,8 @@ class LassoWindow(Window):
             cv_selected_alpha = alpha_range[df["Model_Q^2"].idxmax(1)]
 
         elif method == 'max_posQ2':
-            # todo: an secondary criteria needs to be employed if this is used because there will likely be multiple alphas with the same number of positive Q2
+            # a secondary criteria needs to be employed if this is used because there will likely be multiple alphas
+            # with the same number of positive Q2
             cv_selected_alpha = alpha_range[df["positive_q2"].idxmax(1)]
 
         else:
@@ -309,7 +307,6 @@ class LassoWindow(Window):
         """
         x_data = self.explanatory_data.copy()
         y_data = self.response_data.copy()
-        n_elements = len(x_data)
         kf = KFold(n_folds)
 
         press = 0.0
@@ -328,7 +325,7 @@ class LassoWindow(Window):
 
             # Calculate PRESS and SS
             current_press = np.sum(np.power(y_predicted - y_test, 2), axis=0)
-            current_ss = self.sum_of_squares(y_test)
+            current_ss = self._sum_of_squares(y_test)
 
             press += current_press
             ss += current_ss
@@ -381,9 +378,11 @@ class LassoWindow(Window):
         """
         target_label = self.explanatory_labels[insert_index]
 
-        #find all instances of this label
+        # find all instances of this label
         target_indices = [x for x, label in enumerate(self.explanatory_labels) if label == target_label]
-        # if the min lag is 0, then _initialize_coeffs will automatically remove one of the columns (the response column) from the data_array. the if statement below will detect if the column has already been removed and will avoid removing more column.
+        # if the min lag is 0, then _initialize_coeffs will automatically remove one of the columns
+        # (the response column) from the data_array. the if statement below will detect if the column has already been
+        # removed and will avoid removing more column.
 
         if data_array.shape[1] < len(self.explanatory_labels):
             target_indices.remove(insert_index)
@@ -392,7 +391,7 @@ class LassoWindow(Window):
         target_indices.append(insert_index)
         target_indices = list(set(target_indices))
 
-        return(parsed_array, target_indices)
+        return parsed_array, target_indices
 
     def get_coeffs(self, alpha, x_data=None, y_data=None):
         """
@@ -407,8 +406,11 @@ class LassoWindow(Window):
         if x_data is None:
             x_data = self.explanatory_data
 
-
-        coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data = x_data, y_data = y_data, x_labels = self.explanatory_labels, y_labels = self.response_labels, x_window = self.explanatory_window, nth_window = self.nth_window)
+        coeff_matrix, model_list, model_inputs = self._initialize_coeffs(data=x_data, y_data=y_data,
+                                                                         x_labels=self.explanatory_labels,
+                                                                         y_labels=self.response_labels,
+                                                                         x_window=self.explanatory_window,
+                                                                         nth_window=self.nth_window)
         # Calculate a model for each target column
         for target_y, x_matrix, insert_index in model_inputs:
             if len(self.earlier_windows) != 1:
@@ -456,7 +458,7 @@ class LassoWindow(Window):
 
         return df
 
-    def _sum_of_squares(self,x, axis=0):
+    def _sum_of_squares(self, x, axis=0):
         """
         Calculate the sum of the squares for each column
         :param x: array-like
