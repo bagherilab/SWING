@@ -71,20 +71,6 @@ class Window(object):
         linked_list = pd.DataFrame({'regulator-target': self.edge_list, value_label: numpy_array_2D.flatten()})
         return linked_list
 
-    def get_window_stats(self):
-        """for each window, get a dict:
-            N :             the number of datapoints in this window,
-            time_labels:    the names of the timepoints in a roller model
-            step_size:      the step-size of the current model
-            window_size:    the size of the window of the current model
-            total_windows:  the number of windows total
-            window_index:   the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window
-                            if the window index is 12, it is the 12th window in the series."""
-
-        window_stats = {'n_samples': self.n_samples,
-                        'n_genes': self.n_genes}
-        return window_stats
-
     def resample_window(self):
         """
         Resample window values, along a specific axis
@@ -100,21 +86,6 @@ class Window(object):
         # resample_window = pd.DataFrame(resample_values, columns=self.df.columns.values.copy(),
         #                               index=self.df.index.values.copy())
         return resample_values
-
-    def add_noise_to_values(self, window_values, max_random=0.2):
-        """
-        Add uniform noise to each value
-        :param window: dataframe
-
-        :param max_random: float
-            Amount of noise to add to each value, plus or minus
-        :return: array
-
-        """
-
-        noise = np.random.uniform(low=1 - max_random, high=1 + max_random, size=window_values.shape)
-        noisy_values = np.multiply(window_values, noise)
-        return noisy_values
 
     def initialize_params(self):
         """
@@ -218,61 +189,6 @@ class Window(object):
 
         return(coeff_matrix, model_list, model_inputs)
 
-    def pack_values(self, df):
-        #pack the values into separate time series. It outputs a list of pandasdataframes such that each series can be analyzed separately.
-        #this is important because otherwise the algorithm will combine calculations from separate time series
-        time = self.data[self.time_label].unique()
-        time_n = len(time)
-        series_n = len(self.data[self.time_label])/len(time)
-        time_series_list = []
-        for i in range(0, series_n):
-            #get data[first time point : last timepoint]
-            series = df[i*time_n:(i*time_n)+time_n]
-            time_series_list.append(series)
-        return time_series_list
-
-    def get_rates(self, n=1):
-        series_list = self.pack_values(self.df)
-        rates_list = []
-        for series in series_list:
-            rise = np.diff(series, n, axis = 0)
-            time = self.data[self.time_label].unique()
-            rrun = np.array([j-i for i,j in list(zip(time[:-1], time[1:]))])
-            #the vector represents the scalars used to divide each row
-            rates = rise/rrun[:,None]
-            rates_list.append(rates)
-
-        return rates_list
-
-    def get_rate_analysis(self, n=1):
-        # get max rates
-        rates = self.get_rates(n)
-        all_rates = np.vstack(rates)
-
-        rate_dict = {}
-        rate_dict['max'] = all_rates.max(axis=0)
-        rate_dict['min'] = all_rates.min(axis=0)
-        rate_dict['mean'] = all_rates.mean(axis=0)
-        rate_dict['median'] = np.median(all_rates,axis=0)
-        rate_dict['std'] = all_rates.std(axis=0, ddof=1)
-        rate_dict['all_rates'] = all_rates
-        return rate_dict
-
-    def get_linearity(self):
-        n_genes = self.response_data.shape[1]
-        linearity = []
-        for gene_index in range(0,n_genes):
-            xi = self.data[self.time_label].unique()
-            y = self.response_data[gene_index,:]
-            slope, intercept, r_value, p_value, std_er = stats.linregress(xi, y)
-        linearity.append(r_value)
-        return linearity
-
-    def get_average(self):
-        averages = self.response_data.mean(axis=0)
-        return averages
-
-
 
     ###################################################################################################################
     # Abstract methods listed below
@@ -293,28 +209,17 @@ class Window(object):
         """
         pass
 
-    def run_bootstrap(self, n_bootstraps):
-        """
-        Run bootstrapping and update the edge_table with stability values. It is expected that this method will vary
-        depending on the type of method used by the window
-        :return:
-        """
-        pass
-
-    def sort_edges(self, method):
-        """
-        Rank the edges in the edge table. This may eventually be window type specific.
-
-        :param method: The method to use for ranking the edges in edge_table
-        :return: list of tuples
-            Sorted list [(regulator1, target1), (regulator2, target2)...] that can be scored with aupr or auroc
-        """
-        pass
 
     def get_coeffs(self, *args):
         """
         Get the beta coefficients
         :param args:
         :return:
+        """
+        pass
+
+    def make_edge_table(self):
+        """
+        Make an edge table that can be combined.
         """
         pass

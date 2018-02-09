@@ -70,7 +70,7 @@ class RandomForestRegressionWindow(Window):
 
         self.permutation_means = result['mean'].copy()
         self.permutation_sd = np.sqrt(result['variance'].copy())
-        self.permutation_p_values = self.calc_p_value()
+        self.permutation_p_values = self._calc_p_value()
 
     def run_permutation_test(self, n_permutations=1000, n_jobs=1):
         """
@@ -85,7 +85,7 @@ class RandomForestRegressionWindow(Window):
 
         self._permute_coeffs(zeros, n_permutations=n_permutations, n_jobs=n_jobs)
 
-    def calc_p_value(self, value=None, mean=None, sd=None):
+    def _calc_p_value(self, value=None, mean=None, sd=None):
         """
 
         :param value:

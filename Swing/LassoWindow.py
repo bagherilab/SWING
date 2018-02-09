@@ -36,43 +36,6 @@ class LassoWindow(Window):
         self.freq_matrix = None
         self.edge_stability_auc = None
 
-    def sort_edges(self, method="p_value"):
-        """
-        Sort the edge table based on the selected edge ranking method
-        :param method: str
-            Which method to use for ranking the edges
-        :return:
-
-        Called by:
-            Swing.average_rank()
-        """
-        if self.edge_table is None:
-            raise ValueError("The edge table must be created before getting edges")
-        temp_edge_table = self.edge_table.copy()
-        if method == "p_value":
-            temp_edge_table.sort(columns=['p_value', 'stability'], ascending=[True, False], inplace=True)
-        elif method == "stability":
-            temp_edge_table.sort(columns=['stability', 'p_value'], ascending=[False, True], inplace=True)
-
-        return temp_edge_table['regulator-target'].values
-
-    def rank_results(self, rank_by, ascending=False):
-        rank_column_name = rank_by + "-rank"
-        ##rank edges with an actual beta value first until further notice ##
-        valid_indices = self.results_table['B'] != 0
-        valid_window = self.results_table[valid_indices]
-        valid_window[rank_column_name] = valid_window[rank_by].rank(method="dense", ascending=ascending)
-        edge_n = len(valid_window.index)
-
-        invalid_indices = self.results_table['B'] == 0
-        invalid_window = self.results_table[invalid_indices]
-        invalid_window[rank_column_name] = invalid_window[rank_by].rank(method="dense", ascending=ascending)
-        invalid_window[rank_column_name] = invalid_window[rank_column_name] + edge_n
-        self.results_table = valid_window.append(invalid_window)
-        self.results_table = self.results_table.sort(columns=rank_column_name, axis=0)
-
-        return self.results_table
-
     def _permute_coeffs(self, zeros, n_permutations=10):
         result = {'n': zeros.copy(), 'mean': zeros.copy(), 'ss': zeros.copy()}
         # inner loop: permute the window N number of times
@@ -90,7 +53,7 @@ class LassoWindow(Window):
 
         self.permutation_means = result['mean'].copy()
         self.permutation_sd = np.sqrt(result['variance'].copy())
-        self.permutation_p_values = self.calc_p_value()
+        self.permutation_p_values = self._calc_p_value()
 
     def run_permutation_test(self, n_permutations=10):
         # initialize permutation results array
@@ -101,7 +64,7 @@ class LassoWindow(Window):
         # initialize running calculation
         self._permute_coeffs(zeros=zeros, n_permutations=n_permutations)
 
-    def calc_p_value(self, value=None, mean=None, sd=None):
+    def _calc_p_value(self, value=None, mean=None, sd=None):
         if value is None:
             value = self.beta_coefficients.copy()
         if mean is None:
@@ -154,6 +117,21 @@ class LassoWindow(Window):
                 boot_matrix = np.dstack((boot_matrix, current_coeff))
 
         return boot_matrix
+
+    def add_noise_to_values(self, window_values, max_random=0.2):
+        """
+        Add uniform noise to each value
+        :param window: dataframe
+
+        :param max_random: float
+            Amount of noise to add to each value, plus or minus
+        :return: array
+
+        """
+
+        noise = np.random.uniform(low=1 - max_random, high=1 + max_random, size=window_values.shape)
+        noisy_values = np.multiply(window_values, noise)
+        return noisy_values
 
     def calc_edge_freq(self):
         "This is agnostic to the edge sign, only whether it exists"

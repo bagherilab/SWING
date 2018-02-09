@@ -65,16 +65,6 @@ class DionesusWindow(Window):
 
         return df
 
-    def sort_edges(self, method="importance"):
-        if self.results_table is None:
-            raise ValueError("The edge table must be created before getting edges")
-        if method == "p_value":
-            self.results_table.sort(columns=['p_value', 'importance'], ascending=[True, False], inplace=True)
-        elif method == "importance":
-            self.results_table.sort(columns=['importance', 'p_value'], ascending=[False, True], inplace=True)
-
-        return self.results_table['regulator-target'].values
-
     def generate_results_table(self):
 
         # generate edges for initial model
@@ -102,22 +92,6 @@ class DionesusWindow(Window):
         self.results_table = valid_window
         return (self.results_table)
 
-    def rank_results(self, rank_by, ascending=False):
-        rank_column_name = rank_by + "-rank"
-        # rank edges with an actual beta value first until further notice ##
-        valid_indices = self.results_table['B'] != 0
-        valid_window = self.results_table[valid_indices]
-        valid_window[rank_column_name] = valid_window[rank_by].rank(method="dense", ascending=ascending)
-        edge_n = len(valid_window.index)
-
-        invalid_indices = self.results_table['B'] == 0
-        invalid_window = self.results_table[invalid_indices]
-        invalid_window[rank_column_name] = invalid_window[rank_by].rank(method="dense", ascending=ascending)
-        invalid_window[rank_column_name] += edge_n
-        self.results_table = valid_window.append(invalid_window)
-        self.results_table = self.results_table.sort(columns=rank_column_name, axis=0)
-
-        return (self.results_table)
 
     def run_permutation_test(self, n_permutations=1000):
 
@@ -148,9 +122,9 @@ class DionesusWindow(Window):
 
         self.permutation_means = result['mean'].copy()
         self.permutation_sd = np.sqrt(result['variance'].copy())
-        self.permutation_p_values = self.calc_p_value()
+        self.permutation_p_values = self._calc_p_value()
 
-    def calc_p_value(self, value=None, mean=None, sd=None):
+    def _calc_p_value(self, value=None, mean=None, sd=None):
         if value is None:
             value = self.beta_coefficients.copy()
         if mean is None:
@@ -173,10 +147,7 @@ class DionesusWindow(Window):
         # calculate the Q2 score using PC=1,2,3,4,5
 
         # pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule, maximizing the second derivative or maximum curvature.
-        temp = self.remove_stationary_ts
-        self.remove_stationary_ts = False
         result_tuple = self.get_coeffs()
-        self.remove_stationary_ts = temp
         mse_diff = result_tuple[2]
         model_list = result_tuple[3]
         model_inputs = result_tuple[4]
