@@ -1,10 +1,11 @@
 SWING: Sliding Window Inference for Network Generation
 =======================================
 
-SWING is a network inference framework that excels at identifying connections between upstream regulators and downstream targets using time-series data.
+SWING is a network inference framework that identifies associations between genes using time-series gene expression data. SWING is based on multivariate Granger causality and sliding window regression.
 
 Documentation
 -------------
+For detailed documentation, check our sphinx documentation in SWING/docs
 
 Examples
 --------
