@@ -28,7 +28,6 @@ if __name__ == "__main__":
     sg.optimize_params()
 
     sg.fit_windows(n_trees=trees, show_progress=False, n_jobs=-1)
-    sg.rank_edges(permutation_n=1)
     sg.compile_edges(self_edges=False)
 
     sg.make_static_edge_dict(self_edges=False, lag_method='mean_mean')

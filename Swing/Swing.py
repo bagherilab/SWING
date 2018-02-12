@@ -178,6 +178,7 @@ class Swing(object):
                 explanatory_dict, response_dict = self.get_window_data(index, explanatory_indices)
                 window_info = {"time_label": self.time_label, "gene_start": self.gene_start, "gene_end": self.gene_end,
                                "nth_window": index}
+                print(window_info)
                 window_object = self.get_window_object(raw_window, window_info, td_window, explanatory_dict,
                                                        response_dict)
                 window_list.append(window_object)
