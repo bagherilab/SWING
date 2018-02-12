@@ -4,7 +4,7 @@ Version: 0.0.0
 Summary: Sliding window inference methods
 Home-page: https://github.com/bagherilab/SWING
 Author: Justin Finkle & Jia Wu
-Author-email: jfinkle@u.northwestern.edu.com
+Author-email: jfinkle@u.northwestern.edu
 License: Apache Software License
 Description-Content-Type: UNKNOWN
 Description: SWING: Sliding Window Inference for Network Generation
