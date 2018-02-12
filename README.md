@@ -13,7 +13,7 @@ Please see the jupyter notebook in the `examples/` for a working pipeline.
 
 Citing
 ------
-Finkle, Justin D., Jia J. Wu, and Neda Bagheri. “Windowed Granger Causal Inference Strategy Improves Discovery of Gene Regulatory Networks.” Proceedings of the National Academy of Sciences, February 12, 2018, 201710936. https://doi.org/10.1073/pnas.1710936115.
+Finkle JD, Wu JJ, and Bagheri N. “Windowed Granger Causal Inference Strategy Improves Discovery of Gene Regulatory Networks.” Proceedings of the National Academy of Sciences, February 12, 2018, 201710936. https://doi.org/10.1073/pnas.1710936115.
 
 Dependencies
 ------------
