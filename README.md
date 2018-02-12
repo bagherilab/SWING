@@ -5,11 +5,11 @@ SWING is a network inference framework that identifies associations between gene
 
 Documentation
 -------------
-For source code-related documentation, check our sphinx documentation in the docs/_build/html folder. For general implementation details, please read the Supporting Information section of Finkle et al 2018.
+For source code-related documentation, check our sphinx documentation in the `docs/_build/html` folder. For general implementation details, please read the Supporting Information section of Finkle et al 2018.
 
 Examples
 --------
-Please see the jupyter notebook in the examples/ for a working pipeline.
+Please see the jupyter notebook in the `examples/` for a working pipeline.
 
 Citing
 ------
@@ -32,9 +32,10 @@ Dependencies
 Installation
 ------------
 SWING is available via github and is a python package. Here is an example installation script:
-git clone git@github.com:bagherilab/SWING.git
+```git clone git@github.com:bagherilab/SWING.git
 cd SWING
 python setup.py
+```
  
 Development
 -----------
