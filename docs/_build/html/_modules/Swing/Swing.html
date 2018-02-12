@@ -1,0 +1,770 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing.Swing &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Swing.Swing</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span> <span class="nn">.Window</span> <span class="k">import</span> <span class="n">Window</span>
+<span class="kn">from</span> <span class="nn">.RFRWindow</span> <span class="k">import</span> <span class="n">RandomForestRegressionWindow</span>
+<span class="kn">from</span> <span class="nn">.DionesusWindow</span> <span class="k">import</span> <span class="n">DionesusWindow</span>
+<span class="kn">from</span> <span class="nn">.LassoWindow</span> <span class="k">import</span> <span class="n">LassoWindow</span>
+<span class="kn">from</span> <span class="nn">.util.Evaluator</span> <span class="k">import</span> <span class="n">Evaluator</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">utility_module</span> <span class="k">as</span> <span class="n">util</span>
+
+
+<div class="viewcode-block" id="Swing"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing">[docs]</a><span class="k">class</span> <span class="nc">Swing</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object that grabs different timepoints of data, can set window and step size, and makes an edge-list.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">gene_start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gene_end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span>
+                 <span class="n">window_type</span><span class="o">=</span><span class="s2">&quot;RandomForest&quot;</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_lag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_lag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sub_dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the SWING object. Read the file and put it into a pandas dataframe</span>
+<span class="sd">        :param file_path: string</span>
+<span class="sd">            File to read</span>
+<span class="sd">        :param gene_start: int</span>
+<span class="sd">        :param gene_end: int</span>
+<span class="sd">        :param time_label: str</span>
+<span class="sd">        :param separator: str</span>
+<span class="sd">        :param window_type: str</span>
+<span class="sd">        :param step_size: int</span>
+<span class="sd">        :param min_lag: int</span>
+<span class="sd">        :param max_lag: int or None</span>
+<span class="sd">        :param window_width: int</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Read the raw data into a pandas dataframe object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">separator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sub_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">valid_genes</span> <span class="o">=</span> <span class="n">sub_dict</span><span class="p">[</span><span class="s1">&#39;genes&#39;</span><span class="p">]</span>
+            <span class="n">new_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">time_label</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">valid_genes</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">[</span><span class="n">new_cols</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">=</span> <span class="n">window_type</span>
+
+        <span class="c1"># Set SWING defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span> <span class="o">=</span> <span class="n">window_width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step_size</span> <span class="o">=</span> <span class="n">step_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_label</span> <span class="o">=</span> <span class="n">time_label</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tf_list</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Get overall width of the time-course</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overall_width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_vec</span><span class="p">)</span>
+
+        <span class="c1"># Set lag defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span> <span class="o">=</span> <span class="n">min_lag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="o">=</span> <span class="n">max_lag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_lags</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">gene_end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span> <span class="o">=</span> <span class="n">gene_end</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gene_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span> <span class="o">=</span> <span class="n">gene_start</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># assign norm data for window creation.</span>
+        <span class="c1"># by default, norm_data is raw_data and is later modified by other functions.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">full_edge_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_dict</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lag_set</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Swing.get_n_windows"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_n_windows">[docs]</a>    <span class="k">def</span> <span class="nf">get_n_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the number of windows</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            create_windows</span>
+<span class="sd">            get_window_stats</span>
+
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_windows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">overall_width</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_windows</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Swing.get_window_raw"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_window_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_window_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">random_time</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select a window from the full data set. This is fancy data-frame slicing</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            create_windows</span>
+<span class="sd">            get_window_stats</span>
+<span class="sd">            get_window</span>
+
+<span class="sd">        :param start_index: int</span>
+<span class="sd">            The start of the window</span>
+<span class="sd">        :param random_time: bool, optional</span>
+<span class="sd">        :return: data-frame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">random_time</span><span class="p">:</span>
+            <span class="c1"># select three random timepoints</span>
+            <span class="n">time_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_vec</span><span class="p">[</span><span class="n">start_index</span><span class="p">]</span>
+            <span class="n">choices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_vec</span>
+            <span class="n">choices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">start_index</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">chosen_time</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
+                <span class="n">time_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_window</span><span class="p">,</span> <span class="n">chosen_time</span><span class="p">)</span>
+                <span class="n">chosen_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">choices</span> <span class="o">==</span> <span class="n">chosen_time</span><span class="p">)</span>
+                <span class="n">choices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">chosen_index</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end_index</span> <span class="o">=</span> <span class="n">start_index</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span>
+            <span class="n">time_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_vec</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">time_window</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+    <span class="c1"># need to do something about this method. keep for now, but currently need a &quot;preprocess&quot; method.</span>
+<div class="viewcode-block" id="Swing.remove_blank_rows"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.remove_blank_rows">[docs]</a>    <span class="k">def</span> <span class="nf">remove_blank_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a row if the sum of that row is NaN</span>
+
+<span class="sd">        Called by:</span>
+
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;calculates sum of rows. if sum is NAN, then remove row&quot;&quot;&quot;</span>
+        <span class="n">coln</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">sums</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">coln</span><span class="p">)]</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sums</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="Swing.create_windows"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.create_windows">[docs]</a>    <span class="k">def</span> <span class="nf">create_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_time</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create window objects for SWING to use</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Initialize empty lists</span>
+        <span class="n">window_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Check to make sure lags are valid if parameters have been changed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_lags</span><span class="p">()</span>
+
+        <span class="c1"># If min_lag is 0 and max_lag is 0 then you don&#39;t need a tdWindow</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">td_window</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">td_window</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Generate possible windows using specified SWING parameters</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">()):</span>
+
+            <span class="c1"># Confirm that the window will not be out of bounds</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">overall_width</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Window created that is out of bounds based on parameters&#39;</span><span class="p">)</span>
+
+            <span class="n">explanatory_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_explanatory_indices</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">raw_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_raw</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">random_time</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">explanatory_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">explanatory_indices</span><span class="p">)</span>
+                <span class="n">window_info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;time_label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">,</span> <span class="s2">&quot;gene_start&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span><span class="p">,</span> <span class="s2">&quot;gene_end&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span><span class="p">,</span>
+                               <span class="s2">&quot;nth_window&quot;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
+                <span class="n">window_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_object</span><span class="p">(</span><span class="n">raw_window</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span>
+                                                       <span class="n">response_dict</span><span class="p">)</span>
+                <span class="n">window_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">window_object</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span> <span class="o">=</span> <span class="n">window_list</span></div>
+    
+<div class="viewcode-block" id="Swing.create_custom_windows"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.create_custom_windows">[docs]</a>    <span class="k">def</span> <span class="nf">create_custom_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tf_list</span><span class="p">,</span><span class="n">random_time</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create window objects for SWING to use, with set explanatory variables (such as TFs)</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Initialize empty lists</span>
+        <span class="n">window_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tf_list</span><span class="o">=</span><span class="n">tf_list</span>
+
+        <span class="c1"># Check to make sure lags are valid if parameters have been changed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_lags</span><span class="p">()</span>
+
+        <span class="c1"># If min_lag is 0 and max_lag is 0 then you don&#39;t need a tdWindow</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">td_window</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">td_window</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Generate possible windows using specified SWING parameters</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">()):</span>
+
+            <span class="c1"># Confirm that the window will not be out of bounds</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">overall_width</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Window created that is out of bounds based on parameters&#39;</span><span class="p">)</span>
+
+            <span class="n">explanatory_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_explanatory_indices</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">raw_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_raw</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">random_time</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">explanatory_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_data</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">explanatory_indices</span><span class="p">)</span>
+
+                <span class="c1"># remove information from explanatory window</span>
+                <span class="n">to_remove</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_labels&#39;</span><span class="p">])</span><span class="o">-</span><span class="nb">set</span><span class="p">(</span><span class="n">tf_list</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">removed_tf</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">:</span>
+                    <span class="c1"># remove from explanatory_labels</span>
+                    <span class="n">removed_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_labels&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">removed_tf</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_labels&#39;</span><span class="p">],</span>
+                                                                       <span class="n">removed_index</span><span class="p">)</span>
+
+                    <span class="c1"># explanatory_window</span>
+                    <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_window&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_window&#39;</span><span class="p">],</span>
+                                                                       <span class="n">removed_index</span><span class="p">)</span>
+
+                    <span class="c1"># explanatory_data</span>
+                    <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_data&#39;</span><span class="p">],</span>
+                                                                     <span class="n">removed_index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="c1"># not explanatory_times</span>
+
+                <span class="n">window_info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;time_label&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">,</span> <span class="s2">&quot;gene_start&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span><span class="p">,</span> <span class="s2">&quot;gene_end&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span><span class="p">,</span>
+                               <span class="s2">&quot;nth_window&quot;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
+                <span class="n">window_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_object</span><span class="p">(</span><span class="n">raw_window</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span>
+                                                       <span class="n">response_dict</span><span class="p">)</span>
+                <span class="n">window_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">window_object</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span> <span class="o">=</span> <span class="n">window_list</span></div>
+
+<div class="viewcode-block" id="Swing.check_lags"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.check_lags">[docs]</a>    <span class="k">def</span> <span class="nf">check_lags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure the user specified lags meet necessary criteria</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The minimum lag </span><span class="si">{}</span><span class="s1"> cannot be greater than the maximum lag </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span><span class="p">,</span>
+                                                                                                   <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The minimum lag </span><span class="si">{}</span><span class="s1"> cannot be negative&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The minimum lag </span><span class="si">{}</span><span class="s1"> cannot be greater &#39;</span>
+                             <span class="s1">&#39;than the number of windows </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">()))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The maximum lag </span><span class="si">{}</span><span class="s1"> cannot be greater &#39;</span>
+                             <span class="s1">&#39;than or equal to the number of windows </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="Swing.strip_dataframe"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.strip_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">strip_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split dataframe object components into relevant numpy arrays</span>
+<span class="sd">        :param dataframe:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">df_times</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">return</span> <span class="n">df_times</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">labels</span></div>
+
+<div class="viewcode-block" id="Swing.get_window_data"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_window_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_window_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">explanatory_indices</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the appropriate data for the window</span>
+<span class="sd">        :param index:</span>
+<span class="sd">        :param explanatory_indices:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the data for the current window</span>
+        <span class="n">response_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_raw</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">response_times</span><span class="p">,</span> <span class="n">response_data</span><span class="p">,</span> <span class="n">response_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_dataframe</span><span class="p">(</span><span class="n">response_df</span><span class="p">)</span>
+        <span class="n">response_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">response_labels</span><span class="p">))</span>
+        <span class="n">response_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;response_times&#39;</span><span class="p">:</span> <span class="n">response_times</span><span class="p">,</span> <span class="s1">&#39;response_data&#39;</span><span class="p">:</span> <span class="n">response_data</span><span class="p">,</span>
+                         <span class="s1">&#39;response_labels&#39;</span><span class="p">:</span> <span class="n">response_labels</span><span class="p">,</span> <span class="s1">&#39;response_window&#39;</span><span class="p">:</span> <span class="n">response_window</span><span class="p">}</span>
+
+        <span class="n">explanatory_times</span><span class="p">,</span> <span class="n">explanatory_data</span><span class="p">,</span> <span class="n">explanatory_labels</span><span class="p">,</span> <span class="n">explanatory_window</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="c1"># Get the data for each lagged window</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">explanatory_indices</span><span class="p">):</span>
+            <span class="n">current_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_raw</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">current_times</span><span class="p">,</span> <span class="n">current_data</span><span class="p">,</span> <span class="n">current_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_dataframe</span><span class="p">(</span><span class="n">current_df</span><span class="p">)</span>
+            <span class="n">current_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">idx</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">current_labels</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Initialize values</span>
+                <span class="n">explanatory_times</span> <span class="o">=</span> <span class="n">current_times</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">explanatory_data</span> <span class="o">=</span> <span class="n">current_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">explanatory_labels</span> <span class="o">=</span> <span class="n">current_labels</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">explanatory_window</span> <span class="o">=</span> <span class="n">current_window</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># concatenate relevant windows horizontally.</span>
+                <span class="n">explanatory_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">explanatory_data</span><span class="p">,</span> <span class="n">current_data</span><span class="p">))</span>
+                <span class="n">explanatory_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">explanatory_times</span><span class="p">,</span> <span class="n">current_times</span><span class="p">)</span>
+                <span class="n">explanatory_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">explanatory_labels</span><span class="p">,</span> <span class="n">current_labels</span><span class="p">)</span>
+                <span class="n">explanatory_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">explanatory_window</span><span class="p">,</span> <span class="n">current_window</span><span class="p">)</span>
+
+        <span class="n">explanatory_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;explanatory_times&#39;</span><span class="p">:</span> <span class="n">explanatory_times</span><span class="p">,</span> <span class="s1">&#39;explanatory_data&#39;</span><span class="p">:</span> <span class="n">explanatory_data</span><span class="p">,</span>
+                            <span class="s1">&#39;explanatory_labels&#39;</span><span class="p">:</span> <span class="n">explanatory_labels</span><span class="p">,</span> <span class="s1">&#39;explanatory_window&#39;</span><span class="p">:</span> <span class="n">explanatory_window</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span></div>
+
+<div class="viewcode-block" id="Swing.get_window_object"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_window_object">[docs]</a>    <span class="k">def</span> <span class="nf">get_window_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info_dict</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a window object from a data-frame</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            create_windows</span>
+
+<span class="sd">        :param dataframe: data-frame</span>
+<span class="sd">        :param window_info_dict: dict</span>
+<span class="sd">            Dictionary containing information needed for window initialization</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">window_obj</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;Lasso&quot;</span><span class="p">:</span>
+            <span class="n">window_obj</span> <span class="o">=</span> <span class="n">LassoWindow</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info_dict</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span>
+                                     <span class="n">response_dict</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;RandomForest&quot;</span><span class="p">:</span>
+            <span class="n">window_obj</span> <span class="o">=</span> <span class="n">RandomForestRegressionWindow</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info_dict</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span>
+                                                      <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;Dionesus&quot;</span><span class="p">:</span>
+            <span class="n">window_obj</span> <span class="o">=</span> <span class="n">DionesusWindow</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info_dict</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span>
+                                        <span class="n">response_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">window_obj</span></div>
+
+<div class="viewcode-block" id="Swing.rank_windows"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.rank_windows">[docs]</a>    <span class="k">def</span> <span class="nf">rank_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_permutes</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_bootstraps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_alphas</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run tests to score and rank windows</span>
+
+<span class="sd">        Called by:</span>
+
+
+<span class="sd">        :param n_permutes: int, optional</span>
+<span class="sd">            Number of permutes to run. Default is 1,000</span>
+<span class="sd">        :param n_bootstraps: int, optional</span>
+<span class="sd">            Number of bootstraps to run. Default is 1,000</span>
+<span class="sd">        :param n_alphas: int, optional</span>
+<span class="sd">            Number of alpha values to test if using Lasso. Default is 20</span>
+<span class="sd">        :param noise: float ([0,1]), optional</span>
+<span class="sd">            The amount of noise to add to bootstrapped windows. Default is 0.2</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">run_permutation_test</span><span class="p">(</span><span class="n">n_permutes</span><span class="p">)</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">run_bootstrap</span><span class="p">(</span><span class="n">n_bootstraps</span><span class="p">,</span> <span class="n">n_alphas</span><span class="p">,</span> <span class="n">noise</span><span class="p">)</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">make_edge_table</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Swing.optimize_params"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.optimize_params">[docs]</a>    <span class="k">def</span> <span class="nf">optimize_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Optimize window fit parameters</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="ow">is</span> <span class="s2">&quot;Lasso&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">initialize_params</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span></div>
+
+<div class="viewcode-block" id="Swing.fit_windows"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.fit_windows">[docs]</a>    <span class="k">def</span> <span class="nf">fit_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_trees</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit each window in the list</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+
+<span class="sd">        :param alpha:</span>
+<span class="sd">        :param n_trees:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;Lasso&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">window</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;RandomForest&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n_trees</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">window</span><span class="o">.</span><span class="n">n_trees</span> <span class="o">=</span> <span class="n">n_trees</span>
+                <span class="k">if</span> <span class="n">n_jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">window</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;Dionesus&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">window</span><span class="o">.</span><span class="n">num_pcs</span> <span class="o">=</span> <span class="n">pcs</span>
+            <span class="k">if</span> <span class="n">show_progress</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">window</span><span class="o">.</span><span class="n">td_window</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fitting window index </span><span class="si">%i</span><span class="s2"> against the following window indices: &quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fitting window </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">window</span><span class="o">.</span><span class="n">nth_window</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">()))</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">fit_window</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span></div>
+
+<div class="viewcode-block" id="Swing.rank_edges"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.rank_edges">[docs]</a>    <span class="k">def</span> <span class="nf">rank_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_bootstraps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">permutation_n</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run tests to rank edges in windows</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+
+<span class="sd">        :param n_bootstraps:</span>
+<span class="sd">        :param permutation_n:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;Dionesus&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">make_edge_table</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;Lasso&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">run_permutation_test</span><span class="p">(</span><span class="n">n_permutations</span><span class="o">=</span><span class="n">permutation_n</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running bootstrap...&quot;</span><span class="p">)</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">run_bootstrap</span><span class="p">(</span><span class="n">n_bootstraps</span><span class="o">=</span><span class="n">n_bootstraps</span><span class="p">)</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">make_edge_table</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="o">==</span> <span class="s2">&quot;RandomForest&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">window</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">:</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">make_edge_table</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_list</span></div>
+
+<div class="viewcode-block" id="Swing.zscore_all_data"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.zscore_all_data">[docs]</a>    <span class="k">def</span> <span class="nf">zscore_all_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Zscore the data in a data-frame</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+
+<span class="sd">        :return: z-scored dataframe</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">zscored_dataset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">zscore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                                       <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                       <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">zscored_dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm_data</span> <span class="o">=</span> <span class="n">zscored_dataset</span>
+
+        <span class="k">return</span> <span class="n">zscored_dataset</span></div>
+
+<div class="viewcode-block" id="Swing.get_window_stats"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_window_stats">[docs]</a>    <span class="k">def</span> <span class="nf">get_window_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a dictionary of relevant information from a window</span>
+<span class="sd">            N : the number of data points in this window,</span>
+<span class="sd">            time_labels: the names of the time points</span>
+<span class="sd">            step_size: the step-size of the current model</span>
+<span class="sd">            window_size: the size of the window of the current model</span>
+<span class="sd">            total_windows: the number of windows total</span>
+<span class="sd">            window_index: the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window.</span>
+<span class="sd">            If the window index is 12, it is the 12th window in the series.</span>
+
+<span class="sd">        Called by:</span>
+
+
+<span class="sd">        :return: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;for each window, get a dict:</span>
+<span class="sd">            N : the number of datapoints in this window,</span>
+<span class="sd">            time_labels: the names of the timepoints</span>
+<span class="sd">            step_size: the step-size of the current model</span>
+<span class="sd">            window_size: the size of the window of the current model</span>
+<span class="sd">            total_windows: the number of windows total</span>
+<span class="sd">            window_index: the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window. if the window index is 12, it is the 12th window in the series.&quot;&quot;&quot;</span>
+        <span class="n">current_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_window_raw</span><span class="p">()</span>
+
+        <span class="c1"># calculate the window index</span>
+        <span class="n">min_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">current_window</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">])</span>
+        <span class="n">window_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_vec</span> <span class="o">==</span> <span class="n">min_time</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_size</span>
+
+        <span class="n">window_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_window</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                        <span class="s1">&#39;time_labels&#39;</span><span class="p">:</span> <span class="n">current_window</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time_label</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span>
+                        <span class="s1">&#39;step_size&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_size</span><span class="p">,</span>
+                        <span class="s1">&#39;window_size&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_width</span><span class="p">,</span>
+                        <span class="s1">&#39;total_windows&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_windows</span><span class="p">(),</span>
+                        <span class="s1">&#39;window_index&#39;</span><span class="p">:</span> <span class="n">window_index</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">window_stats</span></div>
+
+<div class="viewcode-block" id="Swing.compile_edges"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.compile_edges">[docs]</a>    <span class="k">def</span> <span class="nf">compile_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">self_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Edges across all windows will be compiled into a single edge list</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compiling all model edges...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">ww</span><span class="p">,</span> <span class="n">window</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_list</span><span class="p">):</span>
+            <span class="c1"># Get the edges and associated values in table form</span>
+            <span class="n">current_df</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">make_edge_table</span><span class="p">()</span>
+
+            <span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;adj_imp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;Importance&#39;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="ow">is</span> <span class="s2">&quot;Dionesus&quot;</span><span class="p">:</span>
+                <span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;adj_imp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;Importance&#39;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_type</span> <span class="ow">is</span> <span class="s2">&quot;Lasso&quot;</span><span class="p">:</span>
+                <span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;adj_imp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;Stability&#39;</span><span class="p">])</span>
+            <span class="n">current_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;adj_imp&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;Rank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_df</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">current_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_df</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">self_edges</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">Parent</span> <span class="o">!=</span> <span class="n">df</span><span class="o">.</span><span class="n">Child</span><span class="p">]</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Edge&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Parent</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">Child</span><span class="p">))</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Lag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">C_window</span> <span class="o">-</span> <span class="n">df</span><span class="o">.</span><span class="n">P_window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">full_edge_list</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[DONE]&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Swing.make_static_edge_dict"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.make_static_edge_dict">[docs]</a>    <span class="k">def</span> <span class="nf">make_static_edge_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">self_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lag_method</span><span class="o">=</span><span class="s1">&#39;max_median&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a dictionary of edges</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lumping edges...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_edge_list</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Only keep edges with importance &gt; 0. Values below 0 are not helpful for model building</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Importance&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Ignore self edges if desired</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">self_edges</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">Parent</span> <span class="o">!=</span> <span class="n">df</span><span class="o">.</span><span class="n">Child</span><span class="p">]</span>
+        <span class="n">edge_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">Edge</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the full set of potential edges with TF list if it is provided.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tf_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">full_edge_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">make_possible_edge_list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tf_list</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_list</span><span class="p">,</span> <span class="n">self_edges</span><span class="o">=</span><span class="n">self_edges</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">full_edge_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">make_possible_edge_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gene_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_list</span><span class="p">,</span> <span class="n">self_edges</span><span class="o">=</span><span class="n">self_edges</span><span class="p">))</span>
+
+        <span class="c1"># Identify edges that could exist, but do not appear in the inferred list</span>
+        <span class="n">edge_diff</span> <span class="o">=</span> <span class="n">full_edge_set</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">edge_set</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">lag_importance_score</span><span class="p">,</span> <span class="n">lag_lump_method</span> <span class="o">=</span> <span class="n">lag_method</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">score_method</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;np.&#39;</span><span class="o">+</span><span class="n">lag_importance_score</span><span class="p">)</span>
+        <span class="n">lump_method</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;np.&#39;</span><span class="o">+</span><span class="n">lag_lump_method</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">full_edge_set</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; out of &quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">full_edge_set</span><span class="p">)),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">edge_diff</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">edge_dict</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataframe&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;mean_importance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="s2">&quot;max_importance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;max_edge&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;lag_importance&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="s1">&#39;lag_method&#39;</span><span class="p">:</span> <span class="n">lag_method</span><span class="p">,</span> <span class="s1">&#39;rank_importance&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&#39;adj_importance&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+                <span class="k">continue</span>
+
+            <span class="n">current_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Edge&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">edge</span><span class="p">]</span>
+            <span class="n">max_idx</span> <span class="o">=</span> <span class="n">current_df</span><span class="p">[</span><span class="s1">&#39;Importance&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+            <span class="n">lag_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">current_df</span><span class="o">.</span><span class="n">Lag</span><span class="p">))</span>
+            <span class="n">lag_imp</span> <span class="o">=</span> <span class="n">score_method</span><span class="p">([</span><span class="n">lump_method</span><span class="p">(</span><span class="n">current_df</span><span class="o">.</span><span class="n">Importance</span><span class="p">[</span><span class="n">current_df</span><span class="o">.</span><span class="n">Lag</span> <span class="o">==</span> <span class="n">lag</span><span class="p">])</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lag_set</span><span class="p">])</span>
+            <span class="n">lag_adj_imp</span> <span class="o">=</span> <span class="n">score_method</span><span class="p">([</span><span class="n">lump_method</span><span class="p">(</span><span class="n">current_df</span><span class="o">.</span><span class="n">adj_imp</span><span class="p">[</span><span class="n">current_df</span><span class="o">.</span><span class="n">Lag</span> <span class="o">==</span> <span class="n">lag</span><span class="p">])</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lag_set</span><span class="p">])</span>
+            <span class="n">lag_rank</span> <span class="o">=</span> <span class="n">score_method</span><span class="p">([</span><span class="n">lump_method</span><span class="p">(</span><span class="n">current_df</span><span class="o">.</span><span class="n">Rank</span><span class="p">[</span><span class="n">current_df</span><span class="o">.</span><span class="n">Lag</span> <span class="o">==</span> <span class="n">lag</span><span class="p">])</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lag_set</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edge_dict</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataframe&quot;</span><span class="p">:</span><span class="n">current_df</span><span class="p">,</span> <span class="s2">&quot;mean_importance&quot;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">current_df</span><span class="o">.</span><span class="n">Importance</span><span class="p">),</span> <span class="s2">&quot;max_importance&quot;</span><span class="p">:</span><span class="n">current_df</span><span class="o">.</span><span class="n">Importance</span><span class="p">[</span><span class="n">max_idx</span><span class="p">],</span>
+                                    <span class="s1">&#39;max_edge&#39;</span><span class="p">:(</span><span class="n">current_df</span><span class="o">.</span><span class="n">P_window</span><span class="p">[</span><span class="n">max_idx</span><span class="p">],</span> <span class="n">current_df</span><span class="o">.</span><span class="n">C_window</span><span class="p">[</span><span class="n">max_idx</span><span class="p">]),</span>
+                                    <span class="s1">&#39;lag_importance&#39;</span><span class="p">:</span> <span class="n">lag_imp</span><span class="p">,</span> <span class="s1">&#39;lag_method&#39;</span><span class="p">:</span><span class="n">lag_method</span><span class="p">,</span>
+                                    <span class="s1">&#39;rank_importance&#39;</span><span class="p">:</span> <span class="n">lag_rank</span><span class="p">,</span> <span class="s1">&#39;adj_importance&#39;</span><span class="p">:</span><span class="n">lag_adj_imp</span><span class="p">}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;...[DONE]&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">edge_diff</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;The last </span><span class="si">%i</span><span class="s1"> edges had no meaningful importance score&#39;</span> \
+                      <span class="s1">&#39; and were placed at the bottom of the list&#39;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">edge_diff</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+    <span class="k">def</span> <span class="nf">_make_possible_edge_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parents</span><span class="p">,</span> <span class="n">children</span><span class="p">,</span> <span class="n">self_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a list of all the possible edges between parents and children</span>
+
+<span class="sd">        :param parents: array</span>
+<span class="sd">            labels for parents</span>
+<span class="sd">        :param children: array</span>
+<span class="sd">            labels for children</span>
+<span class="sd">        :param self_edges:</span>
+<span class="sd">        :return: array, length = parents * children</span>
+<span class="sd">            array of parent, child combinations for all possible edges</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parents</span><span class="p">))</span>
+        <span class="n">child_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">children</span><span class="p">))</span>
+
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">parent_index</span><span class="p">,</span> <span class="n">child_index</span><span class="p">)</span>
+        <span class="n">parent_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parents</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+        <span class="n">child_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">children</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
+        <span class="n">possible_edge_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">self_edges</span><span class="p">:</span>
+            <span class="n">possible_edge_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">parent_list</span><span class="p">,</span> <span class="n">child_list</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">self_edges</span><span class="p">:</span>
+            <span class="n">possible_edge_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parent_list</span><span class="p">,</span> <span class="n">child_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">possible_edge_list</span>
+
+<div class="viewcode-block" id="Swing.make_sort_df"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.make_sort_df">[docs]</a>    <span class="k">def</span> <span class="nf">make_sort_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the mean for each edge</span>
+<span class="sd">        :param df: dataframe</span>
+<span class="sd">        :return: dataframe</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sort_field</span> <span class="o">=</span> <span class="n">sort_by</span><span class="o">+</span><span class="s2">&quot;_importance&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculating </span><span class="si">{}</span><span class="s2"> edge importance...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sort_by</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">temp_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">edge</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="n">edge</span><span class="p">][</span><span class="n">sort_field</span><span class="p">]</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+        <span class="n">sort_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">temp_dict</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+        <span class="n">sort_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">sort_field</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">sort_by</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;rank&#39;</span><span class="p">:</span>
+            <span class="n">sort_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">sort_field</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sort_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">sort_field</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">sort_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;regulator-target&#39;</span>
+        <span class="n">sort_df</span> <span class="o">=</span> <span class="n">sort_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[DONE]&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sort_df</span></div>
+
+<div class="viewcode-block" id="Swing.get_samples"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_samples">[docs]</a>    <span class="k">def</span> <span class="nf">get_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">node_list</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">node_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">node_list</span></div>
+
+<div class="viewcode-block" id="Swing.get_explanatory_indices"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.get_explanatory_indices">[docs]</a>    <span class="k">def</span> <span class="nf">get_explanatory_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+        <span class="c1"># In append mode, the start index can always be 0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">start_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">index</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">end_index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">index</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">min_lag</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">explanatory_indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">end_index</span><span class="p">)</span>
+
+        <span class="c1"># If the maximum lag required is greater than the index, this window must be left censored</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">explanatory_indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_lag</span> <span class="o">&gt;</span> <span class="n">index</span><span class="p">:</span>
+            <span class="n">explanatory_indices</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">explanatory_indices</span></div>
+
+<div class="viewcode-block" id="Swing.score"><a class="viewcode-back" href="../../Swing.html#Swing.Swing.Swing.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sorted_edge_list</span><span class="p">,</span> <span class="n">gold_standard_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scores some stuff, I think...</span>
+<span class="sd">        Called by:</span>
+<span class="sd">            pipeline</span>
+<span class="sd">        :param sorted_edge_list:</span>
+<span class="sd">        :param gold_standard_file:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scoring model...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">current_gold_standard</span> <span class="o">=</span> <span class="n">gold_standard_file</span>
+
+        <span class="n">evaluator</span> <span class="o">=</span> <span class="n">Evaluator</span><span class="p">(</span><span class="n">current_gold_standard</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">node_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_samples</span><span class="p">())</span>
+        <span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">auroc</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">calc_roc</span><span class="p">(</span><span class="n">sorted_edge_list</span><span class="p">)</span>
+        <span class="n">auroc_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tpr&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tpr</span><span class="p">),</span> <span class="s1">&#39;fpr&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fpr</span><span class="p">),</span> <span class="s1">&#39;auroc&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">auroc</span><span class="p">)}</span>
+        <span class="n">precision</span><span class="p">,</span> <span class="n">recall</span><span class="p">,</span> <span class="n">aupr</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">calc_pr</span><span class="p">(</span><span class="n">sorted_edge_list</span><span class="p">)</span>
+        <span class="n">aupr_random</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">evaluator</span><span class="o">.</span><span class="n">full_list</span><span class="p">))]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">recall</span><span class="p">)</span>
+        <span class="n">aupr_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">precision</span><span class="p">),</span> <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">recall</span><span class="p">),</span> <span class="s2">&quot;aupr&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aupr</span><span class="p">),</span>
+                     <span class="s2">&quot;aupr_random&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aupr_random</span><span class="p">)}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[DONE]&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">auroc_dict</span><span class="p">,</span> <span class="n">aupr_dict</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

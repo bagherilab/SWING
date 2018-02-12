@@ -1,0 +1,184 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing.util package &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Swing package" href="Swing.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="swing-util-package">
+<h1>Swing.util package<a class="headerlink" href="#swing-util-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Swing.util.Evaluator">
+<span id="swing-util-evaluator-module"></span><h2>Swing.util.Evaluator module<a class="headerlink" href="#module-Swing.util.Evaluator" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Swing.util.Evaluator.Evaluator">
+<em class="property">class </em><code class="descclassname">Swing.util.Evaluator.</code><code class="descname">Evaluator</code><span class="sig-paren">(</span><em>gold_standard_file=None</em>, <em>sep='t'</em>, <em>interaction_label='regulator-target'</em>, <em>node_list=None</em>, <em>subnet_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="Swing.util.Evaluator.Evaluator.calc_pr">
+<code class="descname">calc_pr</code><span class="sig-paren">(</span><em>pred</em>, <em>sort_on='exists'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator.calc_pr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator.calc_pr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.util.Evaluator.Evaluator.calc_pr_old">
+<code class="descname">calc_pr_old</code><span class="sig-paren">(</span><em>pred</em>, <em>sort_on='exists'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator.calc_pr_old"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator.calc_pr_old" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.util.Evaluator.Evaluator.calc_roc">
+<code class="descname">calc_roc</code><span class="sig-paren">(</span><em>pred</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator.calc_roc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator.calc_roc" title="Permalink to this definition">¶</a></dt>
+<dd><p>much faster calculations for AUROC</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.util.Evaluator.Evaluator.calc_roc_old">
+<code class="descname">calc_roc_old</code><span class="sig-paren">(</span><em>pred</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator.calc_roc_old"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator.calc_roc_old" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.util.Evaluator.Evaluator.create_link_list">
+<code class="descname">create_link_list</code><span class="sig-paren">(</span><em>df</em>, <em>w</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator.create_link_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator.create_link_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.util.Evaluator.Evaluator.possible_edges">
+<code class="descname">possible_edges</code><span class="sig-paren">(</span><em>parents</em>, <em>children</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/Evaluator.html#Evaluator.possible_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.Evaluator.Evaluator.possible_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a list of all the possible edges between parents and children</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parents</strong> – array
+labels for parents</li>
+<li><strong>children</strong> – array
+labels for children</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array, length = parents * children
+array of parent, child combinations for all possible edges</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing.util.utility_module">
+<span id="swing-util-utility-module-module"></span><h2>Swing.util.utility_module module<a class="headerlink" href="#module-Swing.util.utility_module" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Swing.util.utility_module.make_possible_edge_list">
+<code class="descclassname">Swing.util.utility_module.</code><code class="descname">make_possible_edge_list</code><span class="sig-paren">(</span><em>parents</em>, <em>children</em>, <em>self_edges=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/util/utility_module.html#make_possible_edge_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.util.utility_module.make_possible_edge_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a list of all the possible edges between parents and children</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parents</strong> – array
+labels for parents</li>
+<li><strong>children</strong> – array
+labels for children</li>
+<li><strong>self_edges</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array, length = parents * children
+array of parent, child combinations for all possible edges</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing.util">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Swing.util" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="Swing.html">Swing package</a><ul>
+      <li>Previous: <a href="Swing.html" title="previous chapter">Swing package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/Swing.util.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

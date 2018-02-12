@@ -1,0 +1,263 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing.RFRWindow &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Swing.RFRWindow</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestRegressor</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span> <span class="nn">.Window</span> <span class="k">import</span> <span class="n">Window</span>
+
+
+<div class="viewcode-block" id="RandomForestRegressionWindow"><a class="viewcode-back" href="../../Swing.html#Swing.RFRWindow.RandomForestRegressionWindow">[docs]</a><span class="k">class</span> <span class="nc">RandomForestRegressionWindow</span><span class="p">(</span><span class="n">Window</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RandomForestRegressionWindow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span>
+                                                           <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_trees</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="RandomForestRegressionWindow.make_edge_table"><a class="viewcode-back" href="../../Swing.html#Swing.RFRWindow.RandomForestRegressionWindow.make_edge_table">[docs]</a>    <span class="k">def</span> <span class="nf">make_edge_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make the edge table</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Build indexing method for all possible edges. Length = number of parents * number of children</span>
+        <span class="n">parent_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">child_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">parent_index</span><span class="p">,</span> <span class="n">child_index</span><span class="p">)</span>
+
+        <span class="c1"># Flatten arrays to be used in link list creation</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Parent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Child&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Importance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;P_window&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_window</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+
+        <span class="c1"># Calculate the window of the child node, which is equivalent to the current window index</span>
+        <span class="n">child_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nth_window</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;C_window&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_values</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;p_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="c1"># Remove any self edges</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="p">((</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Parent&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Child&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;P_window&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;C_window&#39;</span><span class="p">]))]</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+    <span class="k">def</span> <span class="nf">_permute_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param zeros:</span>
+<span class="sd">        :param n_permutations:</span>
+<span class="sd">        :param n_jobs:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># initialize running calculation</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;n&#39;</span><span class="p">:</span> <span class="n">zeros</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">zeros</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s1">&#39;ss&#39;</span><span class="p">:</span> <span class="n">zeros</span><span class="o">.</span><span class="n">copy</span><span class="p">()}</span>
+        <span class="c1"># inner loop: permute the window N number of times</span>
+        <span class="k">for</span> <span class="n">nth_perm</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">):</span>
+
+            <span class="c1"># permute data</span>
+            <span class="n">permuted_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permute_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span><span class="p">)</span>
+
+            <span class="c1"># fit the data and get coefficients</span>
+            <span class="n">permuted_coeffs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_trees</span><span class="p">,</span> <span class="n">x_data</span><span class="o">=</span><span class="n">permuted_data</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)</span>
+            <span class="n">dummy_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">permuted_coeffs</span><span class="p">]</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_variance_2D</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">dummy_list</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;variance&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_p_value</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RandomForestRegressionWindow.run_permutation_test"><a class="viewcode-back" href="../../Swing.html#Swing.RFRWindow.RandomForestRegressionWindow.run_permutation_test">[docs]</a>    <span class="k">def</span> <span class="nf">run_permutation_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_permutations</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param n_permutations:</span>
+<span class="sd">        :param n_jobs:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># initialize permutation results array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_permute_coeffs</span><span class="p">(</span><span class="n">zeros</span><span class="p">,</span> <span class="n">n_permutations</span><span class="o">=</span><span class="n">n_permutations</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_calc_p_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param value:</span>
+<span class="sd">        :param mean:</span>
+<span class="sd">        :param sd:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">z_scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">sd</span>
+        <span class="n">cdf</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">z_scores</span><span class="p">)))</span>
+        <span class="n">p_values</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">cdf</span>
+        <span class="k">return</span> <span class="n">p_values</span>
+
+<div class="viewcode-block" id="RandomForestRegressionWindow.initialize_params"><a class="viewcode-back" href="../../Swing.html#Swing.RFRWindow.RandomForestRegressionWindow.initialize_params">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_trees</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Choose the value of alpha to use for fitting</span>
+<span class="sd">        :param n_trees: float, optional</span>
+<span class="sd">            The alpha value to use for the window. If none is entered the alpha will be chosen by cross validation</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">n_trees</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Select number of trees with default parameters</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_trees</span> <span class="o">=</span> <span class="mi">500</span>
+        <span class="k">elif</span> <span class="n">n_trees</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">n_trees</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_trees</span> <span class="o">=</span> <span class="n">n_trees</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of trees must be int (&gt;=0) or None&quot;</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="RandomForestRegressionWindow.fit_window"><a class="viewcode-back" href="../../Swing.html#Swing.RFRWindow.RandomForestRegressionWindow.fit_window">[docs]</a>    <span class="k">def</span> <span class="nf">fit_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the attributes of the window using expected pipeline procedure and calculate beta values</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_importance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_trees</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_fitstack_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">col_index</span><span class="p">,</span> <span class="n">n_trees</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">):</span>
+
+        <span class="c1"># Initialize the random forest object</span>
+        <span class="n">rfr</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="n">n_trees</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="s2">&quot;sqrt&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Fit the model</span>
+        <span class="n">rfr</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">)</span>
+
+        <span class="c1"># Save model parameters</span>
+        <span class="n">model_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;col_index&#39;</span><span class="p">:</span> <span class="n">col_index</span><span class="p">,</span>
+                        <span class="s1">&#39;response&#39;</span><span class="p">:</span> <span class="n">target_y</span><span class="p">,</span>
+                        <span class="s1">&#39;predictor&#39;</span><span class="p">:</span> <span class="n">x_matrix</span><span class="p">,</span>
+                        <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">rfr</span><span class="p">}</span>
+        <span class="n">model_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+        <span class="n">importance_vector</span> <span class="o">=</span> <span class="n">rfr</span><span class="o">.</span><span class="n">feature_importances_</span>
+
+        <span class="c1"># artificially add a 0 to where the col_index is</span>
+        <span class="c1"># to prevent self-edges</span>
+        <span class="k">if</span> <span class="n">coeff_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">importance_vector</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">importance_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">importance_vector</span><span class="p">,</span> <span class="n">col_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">coeff_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">importance_vector</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span>
+
+<div class="viewcode-block" id="RandomForestRegressionWindow.get_coeffs"><a class="viewcode-back" href="../../Swing.html#Swing.RFRWindow.RandomForestRegressionWindow.get_coeffs">[docs]</a>    <span class="k">def</span> <span class="nf">get_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_trees</span><span class="p">,</span> <span class="n">x_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param x_data:</span>
+<span class="sd">        :param n_trees:</span>
+<span class="sd">        :return: array-like</span>
+<span class="sd">            An array in which the rows are children and the columns are the parents</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># initialize items</span>
+        <span class="n">y_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_data</span>
+        <span class="k">if</span> <span class="n">x_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span>
+
+        <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">model_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_coeffs</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">x_data</span><span class="p">,</span>
+                                                                         <span class="n">y_data</span><span class="o">=</span><span class="n">y_data</span><span class="p">,</span>
+                                                                         <span class="n">x_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span><span class="p">,</span>
+                                                                         <span class="n">y_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span><span class="p">,</span>
+                                                                         <span class="n">x_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_window</span><span class="p">,</span>
+                                                                         <span class="n">nth_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nth_window</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">x_matrix</span><span class="p">,</span> <span class="n">insert_index</span> <span class="ow">in</span> <span class="n">model_inputs</span><span class="p">:</span>
+            <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fitstack_coeffs</span><span class="p">(</span><span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">insert_index</span><span class="p">,</span>
+                                                             <span class="n">n_trees</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">)</span>
+
+        <span class="n">importance_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span><span class="p">)</span>
+        <span class="n">importance_dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Child&#39;</span>
+        <span class="n">importance_dataframe</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Parent&#39;</span>
+        <span class="k">return</span> <span class="n">importance_dataframe</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

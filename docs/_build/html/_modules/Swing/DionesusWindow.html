@@ -1,0 +1,390 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing.DionesusWindow &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Swing.DionesusWindow</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_decomposition</span> <span class="k">import</span> <span class="n">PLSRegression</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.decomposition</span> <span class="k">import</span> <span class="n">PCA</span>
+<span class="kn">from</span> <span class="nn">.Window</span> <span class="k">import</span> <span class="n">Window</span>
+
+
+<div class="viewcode-block" id="DionesusWindow"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow">[docs]</a><span class="k">class</span> <span class="nc">DionesusWindow</span><span class="p">(</span><span class="n">Window</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A window that runs Dionesus as the network inference algorithm. The PLSR function is from sci-kit learn for</span>
+<span class="sd">    implementation consistency between window types</span>
+
+<span class="sd">    For more information about Dionesus see:</span>
+
+<span class="sd">    Ciaccio, Mark F., et al. &quot;The DIONESUS algorithm provides scalable and accurate reconstruction of dynamic</span>
+<span class="sd">    phosphoproteomic networks to reveal new drug targets.&quot; Integrative Biology (2015).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DionesusWindow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span>
+                                             <span class="n">response_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_pcs</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vip</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv_table</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_stability_auc</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="DionesusWindow.make_edge_table"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow.make_edge_table">[docs]</a>    <span class="k">def</span> <span class="nf">make_edge_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :return:</span>
+
+<span class="sd">        Called by:</span>
+<span class="sd">            Swing.rank_edges()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Build indexing method for all possible edges. Length = number of parents * number of children</span>
+        <span class="n">parent_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">child_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">parent_index</span><span class="p">,</span> <span class="n">child_index</span><span class="p">)</span>
+
+        <span class="c1"># Flatten arrays to be used in link list creation</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Parent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Child&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Importance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vip</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Beta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;P_window&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_window</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+
+        <span class="c1"># Calculate the window of the child node, which is equivalent to the current window index</span>
+        <span class="n">child_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">nth_window</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;C_window&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_values</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;p_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="c1"># Remove any self edges</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="p">((</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Parent&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Child&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;P_window&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;C_window&#39;</span><span class="p">]))]</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="DionesusWindow.generate_results_table"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow.generate_results_table">[docs]</a>    <span class="k">def</span> <span class="nf">generate_results_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># generate edges for initial model</span>
+        <span class="n">initial_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_linked_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span>
+
+        <span class="c1"># permutation edges</span>
+        <span class="n">permutation_mean_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_linked_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span><span class="p">,</span> <span class="s1">&#39;p-means&#39;</span><span class="p">)</span>
+        <span class="n">permutation_sd_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_linked_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span><span class="p">,</span> <span class="s1">&#39;p-sd&#39;</span><span class="p">)</span>
+        <span class="n">stability_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_linked_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_stability_auc</span><span class="p">,</span> <span class="s1">&#39;stability&#39;</span><span class="p">)</span>
+
+        <span class="n">aggregated_edges</span> <span class="o">=</span> <span class="n">initial_edges</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">permutation_mean_edges</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">permutation_sd_edges</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">stability_edges</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">)</span>
+
+        <span class="c1"># p-value calculation of permutation test</span>
+        <span class="n">valid_window</span> <span class="o">=</span> <span class="n">aggregated_edges</span>
+        <span class="n">initial_B</span> <span class="o">=</span> <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">]</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;p-sd&#39;</span><span class="p">]</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;p-means&#39;</span><span class="p">]</span>
+        <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;final-z-scores-perm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">initial_B</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">sd</span>
+        <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;cdf-perm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;final-z-scores-perm&#39;</span><span class="p">]))</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">)</span>
+        <span class="c1"># calculate t-tailed pvalue</span>
+        <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;p-value-perm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">valid_window</span><span class="p">[</span><span class="s1">&#39;cdf-perm&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_table</span> <span class="o">=</span> <span class="n">valid_window</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_table</span></div>
+
+<div class="viewcode-block" id="DionesusWindow.run_permutation_test"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow.run_permutation_test">[docs]</a>    <span class="k">def</span> <span class="nf">run_permutation_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_permutations</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+
+        <span class="c1"># initialize permutation results array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_genes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_genes</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_genes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_genes</span><span class="p">))</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># initialize running calculation</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;n&#39;</span><span class="p">:</span> <span class="n">zeros</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">zeros</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s1">&#39;ss&#39;</span><span class="p">:</span> <span class="n">zeros</span><span class="o">.</span><span class="n">copy</span><span class="p">()}</span>
+
+        <span class="c1"># inner loop: permute the window N number of times</span>
+        <span class="k">for</span> <span class="n">nth_perm</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_permutations</span><span class="p">):</span>
+            <span class="c1"># permute data</span>
+            <span class="n">permuted_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permute_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span><span class="p">)</span>
+
+            <span class="c1"># fit the data and get coefficients</span>
+
+            <span class="n">result_tuple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coeffs</span><span class="p">(</span><span class="n">x_data</span><span class="o">=</span><span class="n">permuted_data</span><span class="p">)</span>
+            <span class="n">permuted_coeffs</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">permuted_vip</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">dummy_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">permuted_coeffs</span><span class="p">]</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_variance_2D</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">dummy_list</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;variance&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_p_value</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_calc_p_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">z_scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">sd</span>
+        <span class="n">cdf</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">z_scores</span><span class="p">)))</span>
+        <span class="n">p_values</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">cdf</span>
+        <span class="k">return</span> <span class="n">p_values</span>
+
+<div class="viewcode-block" id="DionesusWindow.initialize_params"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow.initialize_params">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Optimize the number of PCs to use.</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># calculate the Q2 score using PC=1,2,3,4,5</span>
+
+        <span class="c1"># pick the PCs that maximizes the Q2 score-PCs tradeoff, using the elbow rule,</span>
+        <span class="c1"># maximizing the second derivative or maximum curvature.</span>
+        <span class="n">result_tuple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coeffs</span><span class="p">()</span>
+        <span class="n">model_list</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">model_inputs</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="n">explained_variances</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">size_test</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">response</span><span class="p">,</span> <span class="n">explanatory</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">model_inputs</span><span class="p">:</span>
+            <span class="n">size_test</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">explanatory</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">min_dim</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">size_test</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">response</span><span class="p">,</span> <span class="n">explanatory</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">model_inputs</span><span class="p">:</span>
+            <span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">()</span>
+            <span class="n">pca</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">explanatory</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">explained_variances</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">explained_variances</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">explained_variances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">explained_variances</span><span class="p">,</span> <span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">explained_variances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">explained_variances</span><span class="p">[:,</span> <span class="p">:</span><span class="n">min_dim</span><span class="p">],</span>
+                                                         <span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[:</span><span class="n">min_dim</span><span class="p">]))</span>
+                    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                        <span class="n">truncated_index</span> <span class="o">=</span> <span class="n">min_dim</span>
+                        <span class="n">explained_variances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">explained_variances</span><span class="p">[:</span><span class="n">truncated_index</span><span class="p">],</span>
+                                                         <span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[:</span><span class="n">truncated_index</span><span class="p">]))</span>
+
+        <span class="n">explained_variances_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">explained_variances</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">test_pcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">explained_variances_mean</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">elbow_x</span><span class="p">,</span> <span class="n">elbow_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elbow_criteria</span><span class="p">(</span><span class="n">test_pcs</span><span class="p">,</span> <span class="n">explained_variances_mean</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_pcs</span> <span class="o">=</span> <span class="n">elbow_x</span></div>
+
+<div class="viewcode-block" id="DionesusWindow.fit_window"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow.fit_window">[docs]</a>    <span class="k">def</span> <span class="nf">fit_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pcs</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the attributes of the window using expected pipeline procedure and calculate beta values</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_pcs</span>
+        <span class="n">result_tuple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coeffs</span><span class="p">(</span><span class="n">pcs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_coefficients</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vip</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_list</span> <span class="o">=</span> <span class="n">result_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_fitstack_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_pcs</span><span class="p">,</span> <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">vip_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">col_index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param n_pcs:</span>
+<span class="sd">        :param coeff_matrix:</span>
+<span class="sd">        :param vip_matrix:</span>
+<span class="sd">        :param model_list:</span>
+<span class="sd">        :param x_matrix:</span>
+<span class="sd">        :param target_y:</span>
+<span class="sd">        :param col_index:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pls</span> <span class="o">=</span> <span class="n">PLSRegression</span><span class="p">(</span><span class="n">n_pcs</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Fit the model</span>
+        <span class="n">pls</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">)</span>
+
+        <span class="n">model_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;col_index&#39;</span><span class="p">:</span> <span class="n">col_index</span><span class="p">,</span>
+                        <span class="s1">&#39;response&#39;</span><span class="p">:</span> <span class="n">target_y</span><span class="p">,</span>
+                        <span class="s1">&#39;predictor&#39;</span><span class="p">:</span> <span class="n">x_matrix</span><span class="p">,</span>
+                        <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">pls</span><span class="p">}</span>
+
+        <span class="n">model_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+
+        <span class="c1"># artificially add a 0 to where the col_index is to prevent self-edges</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">pls</span><span class="o">.</span><span class="n">coef_</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">),))</span>
+        <span class="n">vips</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vipp</span><span class="p">(</span><span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">pls</span><span class="o">.</span><span class="n">x_scores_</span><span class="p">,</span> <span class="n">pls</span><span class="o">.</span><span class="n">x_weights_</span><span class="p">)</span>
+        <span class="n">vips</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vips</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vips</span><span class="p">),))</span>
+        <span class="k">if</span> <span class="n">coeff_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">col_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">vips</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">vips</span><span class="p">,</span> <span class="n">col_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">coeff_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">))</span>
+        <span class="n">vip_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">vip_matrix</span><span class="p">,</span> <span class="n">vips</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">vip_matrix</span><span class="p">,</span> <span class="n">model_list</span>
+
+    <span class="k">def</span> <span class="nf">_elbow_criteria</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="c1"># Slope between elbow endpoints</span>
+        <span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_point_slope</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># Intercept</span>
+        <span class="n">b1</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m1</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Slope for perpendicular lines</span>
+        <span class="n">m2</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="n">m1</span>
+
+        <span class="c1"># Calculate intercepts for perpendicular lines that go through data point</span>
+        <span class="n">b_array</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">m2</span> <span class="o">*</span> <span class="n">x</span>
+        <span class="n">x_perp</span> <span class="o">=</span> <span class="p">(</span><span class="n">b_array</span> <span class="o">-</span> <span class="n">b1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">m1</span> <span class="o">-</span> <span class="n">m2</span><span class="p">)</span>
+        <span class="n">y_perp</span> <span class="o">=</span> <span class="n">m1</span> <span class="o">*</span> <span class="n">x_perp</span> <span class="o">+</span> <span class="n">b1</span>
+
+        <span class="c1"># Calculate where the maximum distance to a line connecting endpoints is</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x_perp</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y_perp</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">index_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">distances</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">distances</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">elbow_x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">index_max</span><span class="p">]</span>
+        <span class="n">elbow_y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">index_max</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">elbow_x</span><span class="p">,</span> <span class="n">elbow_y</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_point_slope</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="p">(</span><span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">slope</span>
+
+<div class="viewcode-block" id="DionesusWindow.get_coeffs"><a class="viewcode-back" href="../../Swing.html#Swing.DionesusWindow.DionesusWindow.get_coeffs">[docs]</a>    <span class="k">def</span> <span class="nf">get_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_pcs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">x_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param x_data:</span>
+<span class="sd">        :param n_trees:</span>
+<span class="sd">        :return: array-like</span>
+<span class="sd">            An array in which the rows are children and the columns are the parents</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># initialize items</span>
+        <span class="k">if</span> <span class="n">y_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_data</span>
+        <span class="k">if</span> <span class="n">x_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span>
+
+        <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">model_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_coeffs</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="o">=</span><span class="n">y_data</span><span class="p">,</span>
+                                                                         <span class="n">x_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span><span class="p">,</span>
+                                                                         <span class="n">y_labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span><span class="p">,</span>
+                                                                         <span class="n">x_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_window</span><span class="p">,</span>
+                                                                         <span class="n">nth_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nth_window</span><span class="p">)</span>
+        <span class="n">vip_matrix</span> <span class="o">=</span> <span class="n">coeff_matrix</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Calculate a model for each target column</span>
+        <span class="k">for</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">x_matrix</span><span class="p">,</span> <span class="n">insert_index</span> <span class="ow">in</span> <span class="n">model_inputs</span><span class="p">:</span>
+            <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">vip_matrix</span><span class="p">,</span> <span class="n">model_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fitstack_coeffs</span><span class="p">(</span><span class="n">num_pcs</span><span class="p">,</span> <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">vip_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span>
+                                                                         <span class="n">x_matrix</span><span class="p">,</span> <span class="n">target_y</span><span class="p">,</span> <span class="n">insert_index</span><span class="p">)</span>
+
+        <span class="n">coeff_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span><span class="p">)</span>
+        <span class="n">coeff_dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Child&#39;</span>
+        <span class="n">coeff_dataframe</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Parent&#39;</span>
+
+        <span class="n">importance_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vip_matrix</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span><span class="p">)</span>
+        <span class="n">importance_dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Child&#39;</span>
+        <span class="n">importance_dataframe</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Parent&#39;</span>
+        <span class="k">return</span> <span class="n">coeff_dataframe</span><span class="p">,</span> <span class="n">importance_dataframe</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">model_inputs</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_vipp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="c1"># initializing</span>
+        <span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">co</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">h</span><span class="p">]))</span>
+
+        <span class="c1"># Calculate s		</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+            <span class="n">corr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">[:,</span> <span class="n">ii</span><span class="p">],</span> <span class="n">rowvar</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">co</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">corr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">co</span><span class="p">)</span>
+        <span class="c1"># Calculate q		</span>
+        <span class="c1"># This has been linearized to replace the original nested for loop		</span>
+        <span class="n">w_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">w_power</span><span class="p">,</span> <span class="n">co</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">vip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">q</span> <span class="o">/</span> <span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vip</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

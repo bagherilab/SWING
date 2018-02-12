@@ -1,0 +1,338 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing.util.Evaluator &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Swing.util.Evaluator</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">integrate</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="Evaluator"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator">[docs]</a><span class="k">class</span> <span class="nc">Evaluator</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gold_standard_file</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">interaction_label</span><span class="o">=</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">,</span> <span class="n">node_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subnet_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">gold_standard_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">subnet_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">[</span><span class="s1">&#39;true_edges&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">subnet_dict</span><span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="n">gold_standard_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_file</span> <span class="o">=</span> <span class="n">gold_standard_file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gold_standard_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;regulator&#39;</span><span class="p">,</span><span class="s1">&#39;target&#39;</span><span class="p">,</span><span class="s1">&#39;exists&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="o">.</span><span class="n">regulator</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="o">.</span><span class="n">target</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">interaction_label</span> <span class="o">=</span> <span class="n">interaction_label</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="s1">&#39;exists&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">][</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gs_neg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="s1">&#39;exists&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">][</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span>
+            <span class="c1">#ecoli has a unique gold standard file</span>
+            <span class="k">if</span> <span class="s1">&#39;ecoli&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_file</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">regulators</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">335</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4512</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">possible_edges</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regulators</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">))))</span>
+
+            <span class="k">elif</span> <span class="s1">&#39;omranian&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;../data/invitro/omranian_parsed_tf_list.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">regulators</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;../data/invitro/omranian_all_genes_list.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_edges</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regulators</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">))))</span>
+
+            <span class="k">elif</span> <span class="s1">&#39;dream5&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;../data/dream5/insilico_transcription_factors.tsv&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">regulators</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="s1">&#39;../data/dream5/insilico_timeseries.tsv&#39;</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">geneids</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">geneids</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="n">geneids</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_edges</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regulators</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">))))</span>
+
+            <span class="k">elif</span> <span class="n">node_list</span><span class="p">:</span>
+                <span class="n">all_regulators</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">node_list</span><span class="p">)))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">possible_edges</span><span class="p">(</span><span class="n">all_regulators</span><span class="p">,</span><span class="n">all_regulators</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#more robust version of defining the full list</span>
+                <span class="n">all_regulators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="s1">&#39;regulator&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">all_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gs_data</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">all_regulators</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">all_targets</span><span class="p">)</span>
+                <span class="n">all_regulators</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">all_regulators</span><span class="p">)))</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">possible_edges</span><span class="p">(</span><span class="n">all_regulators</span><span class="p">,</span>
+                  <span class="n">all_regulators</span><span class="p">)))</span>
+                <span class="c1">#remove self edges</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_list</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Evaluator.possible_edges"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator.possible_edges">[docs]</a>    <span class="k">def</span> <span class="nf">possible_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parents</span><span class="p">,</span> <span class="n">children</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a list of all the possible edges between parents and children</span>
+
+<span class="sd">        :param parents: array</span>
+<span class="sd">            labels for parents</span>
+<span class="sd">        :param children: array</span>
+<span class="sd">            labels for children</span>
+<span class="sd">        :return: array, length = parents * children</span>
+<span class="sd">            array of parent, child combinations for all possible edges</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parents</span><span class="p">))</span>
+        <span class="n">child_index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">children</span><span class="p">))</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">parent_index</span><span class="p">,</span> <span class="n">child_index</span><span class="p">)</span>
+        <span class="n">parent_list</span> <span class="o">=</span> <span class="n">parents</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">child_list</span> <span class="o">=</span> <span class="n">children</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">possible_edge_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">parent_list</span><span class="p">,</span> <span class="n">child_list</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">possible_edge_list</span></div>
+
+<div class="viewcode-block" id="Evaluator.create_link_list"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator.create_link_list">[docs]</a>    <span class="k">def</span> <span class="nf">create_link_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">df</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
+        <span class="n">parent_names</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">child_names</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_edges</span><span class="p">(</span><span class="n">parent_names</span><span class="p">,</span> <span class="n">child_names</span><span class="p">)</span>
+        <span class="n">parents</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">directed_edges</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">all_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">directed_edges</span><span class="p">)</span>
+        <span class="n">ll_array</span> <span class="o">=</span> <span class="p">[</span><span class="n">parents</span><span class="p">,</span> <span class="n">children</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">children</span><span class="p">)),</span> <span class="n">directed_edges</span><span class="p">,</span> <span class="n">all_edges</span><span class="p">,</span> <span class="n">w</span><span class="p">]</span>
+        <span class="n">link_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ll_array</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="n">link_list</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Parent&#39;</span><span class="p">,</span> <span class="s1">&#39;Child&#39;</span><span class="p">,</span> <span class="s1">&#39;Edge&#39;</span><span class="p">,</span> <span class="s1">&#39;Directed_Edge&#39;</span><span class="p">,</span> <span class="s1">&#39;Edge_Exists&#39;</span><span class="p">,</span> <span class="s1">&#39;W&#39;</span><span class="p">]</span>
+        <span class="c1">#link_list.sort(columns=&#39;Edge_Exists&#39;, ascending=False, inplace=True)</span>
+        <span class="k">return</span> <span class="n">link_list</span></div>
+
+<div class="viewcode-block" id="Evaluator.calc_pr"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator.calc_pr">[docs]</a>    <span class="k">def</span> <span class="nf">calc_pr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pred</span><span class="p">,</span><span class="n">sort_on</span> <span class="o">=</span> <span class="s1">&#39;exists&#39;</span><span class="p">):</span>
+        <span class="n">tpr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fpr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">index</span><span class="p">[[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span><span class="o">=~</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+
+        <span class="c1">### find total number of edges</span>
+        <span class="n">negative_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span><span class="p">[</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">full_list</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)]</span>
+        <span class="n">total_negative</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">negative_edges</span><span class="p">)</span>
+        <span class="n">total_positive</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+
+        <span class="c1">### generate cumulative sum of tp, fp, tn, fn</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fn_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_positive</span> <span class="o">-</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tn_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_negative</span> <span class="o">-</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp_cs&#39;</span><span class="p">]</span>
+
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;recall&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fn_cs&#39;</span><span class="p">])</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;precision&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp_cs&#39;</span><span class="p">])</span>
+        <span class="n">aupr</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;recall&#39;</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;precision&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">aupr</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;aupr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aupr</span>
+        <span class="k">return</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;precision&#39;</span><span class="p">],</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;recall&#39;</span><span class="p">],</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;aupr&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Evaluator.calc_pr_old"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator.calc_pr_old">[docs]</a>    <span class="k">def</span> <span class="nf">calc_pr_old</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">sort_on</span> <span class="o">=</span> <span class="s1">&#39;exists&#39;</span><span class="p">):</span>
+        <span class="c1"># True Positive Rate (TPR) = TP/(TP+FN)</span>
+        <span class="c1"># False Positive Rate (FPR) = FP/(FP+TN)</span>
+
+        <span class="c1">#initialize counts</span>
+        <span class="c1">#todo: remove below, it is unnecessary</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#current_list is the list at a certain index.</span>
+        <span class="c1">#at each iteration, add the edge to the current_list.</span>
+        <span class="c1">#evaluate the current list&#39;s precision and recall value</span>
+
+        <span class="c1">#it is assumed that the edges are already sorted in descending rank order</span>
+
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]:</span>
+            <span class="n">current_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span><span class="n">current_list</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span> <span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fn&#39;</span><span class="p">]</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">recall</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">recall</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fn&#39;</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span> <span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">precision</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">precision</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]))</span>
+
+            <span class="n">aupr</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">recall</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">precision</span><span class="p">,</span> <span class="n">recall</span><span class="p">,</span> <span class="n">aupr</span></div>
+
+    <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; evaluate the list using sets hooray, packs it up in dict &quot;&quot;&quot;</span>
+        <span class="n">gold_standard</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+        <span class="n">prediction</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">current_list</span><span class="p">)</span>
+        <span class="n">full</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_list</span><span class="p">)</span>
+
+        <span class="n">tp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">gold_standard</span><span class="p">))</span>
+        <span class="c1">#both in prediction and gold_standard</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">gold_standard</span><span class="p">))</span>
+        <span class="c1">#in prediction but not in gold standard</span>
+        <span class="n">pred_full</span> <span class="o">=</span> <span class="n">full</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">prediction</span><span class="p">)</span> <span class="c1"># &#39;negatives&#39; or in full but not pred</span>
+        <span class="n">gold_full</span> <span class="o">=</span> <span class="n">full</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">gold_standard</span><span class="p">)</span> <span class="c1"># in full but not in gold</span>
+
+        <span class="n">tn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_full</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">gold_full</span><span class="p">))</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_full</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">gold_full</span><span class="p">))</span>
+        <span class="c1">#compare pred - full negatives, and gold - full negatives</span>
+        <span class="c1">#true negatives is the intersection between gold_full and pred full</span>
+        <span class="c1">#false negatives is the number of things in pred full that are not in gold full</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;tn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tn</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;fn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Evaluator.calc_roc"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator.calc_roc">[docs]</a>    <span class="k">def</span> <span class="nf">calc_roc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;much faster calculations for AUROC&quot;&quot;&quot;</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">tpr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fpr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">index</span><span class="p">[[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span><span class="o">=~</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+
+        <span class="c1">### find total number of edges</span>
+        <span class="n">negative_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_list</span><span class="p">[</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">full_list</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)]</span>
+        <span class="n">total_negative</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">negative_edges</span><span class="p">)</span>
+        <span class="n">total_positive</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gs_flat</span><span class="p">)</span>
+
+        <span class="c1">### generate cumulative sum of tp, fp, tn, fn</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fn_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_positive</span> <span class="o">-</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tn_cs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_negative</span> <span class="o">-</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp_cs&#39;</span><span class="p">]</span>
+
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tpr&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tp_cs&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_positive</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fpr&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fp_cs&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_negative</span>
+        <span class="n">auroc</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fpr&#39;</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tpr&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">auroc</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;auroc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">auroc</span>
+        <span class="k">return</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;tpr&#39;</span><span class="p">],</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;fpr&#39;</span><span class="p">],</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;auroc&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Evaluator.calc_roc_old"><a class="viewcode-back" href="../../../Swing.util.html#Swing.util.Evaluator.Evaluator.calc_roc_old">[docs]</a>    <span class="k">def</span> <span class="nf">calc_roc_old</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+        <span class="c1"># True Positive Rate (TPR) = TP/(TP+FN)</span>
+        <span class="c1"># False Positive Rate (FPR) = FP/(FP+TN)</span>
+
+        <span class="n">tp</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">tpr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fpr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">pred</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]:</span>
+            <span class="n">current_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span><span class="n">current_list</span><span class="p">)</span>
+
+            <span class="n">total_p</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">+</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fn&#39;</span><span class="p">]</span>
+            <span class="n">total_n</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span><span class="o">+</span> <span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tn&#39;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">total_n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">fpr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fpr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;fp&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_n</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total_p</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">tpr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tpr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">counts</span><span class="p">[</span><span class="s1">&#39;tp&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_p</span><span class="p">)</span>
+
+            <span class="n">auroc</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumtrapz</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">fpr</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">tpr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">auroc</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">xls</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="s1">&#39;../../goldbetter_model/adjacency_matrix.xlsx&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">xls</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+
+    <span class="n">xls2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="s1">&#39;../../goldbetter_model/test_matrix.xlsx&#39;</span><span class="p">)</span>
+    <span class="n">df2</span> <span class="o">=</span> <span class="n">xls2</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">reference</span> <span class="o">=</span> <span class="n">create_link_list</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+    <span class="n">random</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">Edge_Exists</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">/</span><span class="mf">256.0</span><span class="p">]</span><span class="o">*</span><span class="mi">256</span><span class="p">)</span>
+    <span class="n">prediction</span> <span class="o">=</span> <span class="n">create_link_list</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">calc_pr</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">prediction</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+    <span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_roc</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">prediction</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

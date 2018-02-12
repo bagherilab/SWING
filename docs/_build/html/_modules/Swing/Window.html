@@ -1,0 +1,300 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing.Window &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Swing.Window</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">utility_module</span> <span class="k">as</span> <span class="n">util</span>
+
+
+<div class="viewcode-block" id="Window"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window">[docs]</a><span class="k">class</span> <span class="nc">Window</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A window object is a snapshot created from the full data. Windows operate independently from each other. Windows</span>
+<span class="sd">    should be sub-classed to have network inference specific features and methods.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_dataframe</span><span class="p">,</span> <span class="n">window_info</span><span class="p">,</span> <span class="n">td_window</span><span class="p">,</span> <span class="n">explanatory_dict</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a window object. Extract information from the passed data-frame. Generate edge list.</span>
+
+<span class="sd">        :param raw_dataframe: pandas data-frame</span>
+<span class="sd">        :param window_info: dict</span>
+<span class="sd">            Dictionary that provides data that can be used to uniquely identify a window</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">td_window</span> <span class="o">=</span> <span class="n">td_window</span>
+
+        <span class="c1"># Unpack data dictionaries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span> <span class="o">=</span> <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_data&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_window</span> <span class="o">=</span> <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_window&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_times</span> <span class="o">=</span> <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_times&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span> <span class="o">=</span> <span class="n">explanatory_dict</span><span class="p">[</span><span class="s1">&#39;explanatory_labels&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_data</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;response_data&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_window</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;response_window&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_times</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;response_times&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;response_labels&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">earlier_windows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_window</span><span class="p">))</span>
+
+        <span class="c1"># Unpack window information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_label</span> <span class="o">=</span> <span class="n">window_info</span><span class="p">[</span><span class="s1">&#39;time_label&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span> <span class="o">=</span> <span class="n">window_info</span><span class="p">[</span><span class="s1">&#39;gene_start&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span> <span class="o">=</span> <span class="n">window_info</span><span class="p">[</span><span class="s1">&#39;gene_end&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nth_window</span> <span class="o">=</span> <span class="n">window_info</span><span class="p">[</span><span class="s1">&#39;nth_window&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Calculate additional attributes for the window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">raw_dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">raw_dataframe</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">gene_end</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_genes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">genes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">make_possible_edge_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_labels</span><span class="p">)</span>
+        <span class="c1"># Add edge list to edge table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_table</span><span class="p">[</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span>
+
+        <span class="c1"># Initialize attributes used for ranking edges</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_means</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_sd</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permutation_p_values</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The training score is a list of descriptors for how well the model fit the training data for each response</span>
+<span class="sd">        variable for the current window the test score is a list of descriptors for how well the model fit the test data</span>
+<span class="sd">        for each response variable for the current window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_scores</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Window.create_linked_list"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.create_linked_list">[docs]</a>    <span class="k">def</span> <span class="nf">create_linked_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">numpy_array_2D</span><span class="p">,</span> <span class="n">value_label</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;labels and array should be in row-major order&quot;&quot;&quot;</span>
+        <span class="n">linked_list</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;regulator-target&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">,</span> <span class="n">value_label</span><span class="p">:</span> <span class="n">numpy_array_2D</span><span class="o">.</span><span class="n">flatten</span><span class="p">()})</span>
+        <span class="k">return</span> <span class="n">linked_list</span></div>
+
+<div class="viewcode-block" id="Window.resample_window"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.resample_window">[docs]</a>    <span class="k">def</span> <span class="nf">resample_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resample window values, along a specific axis</span>
+<span class="sd">        :param window_values: array</span>
+
+<span class="sd">        :return: array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># For each column randomly choose samples</span>
+        <span class="n">resample_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">explanatory_data</span><span class="p">[:,</span> <span class="n">ii</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">return</span> <span class="n">resample_values</span></div>
+
+<div class="viewcode-block" id="Window.initialize_params"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.initialize_params">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a model for the window and calculate the necessary parameters</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Window.permute_data"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.permute_data">[docs]</a>    <span class="k">def</span> <span class="nf">permute_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Warning: Modifies data in place. also remember the &quot;&quot;&quot;</span>
+        <span class="n">new_array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_array</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">new_array</span></div>
+
+<div class="viewcode-block" id="Window.update_variance_1D"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.update_variance_1D">[docs]</a>    <span class="k">def</span> <span class="nf">update_variance_1D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">new_samples</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        incremental calculation of means: accepts new_samples, which is a list of samples. then calculates a new mean.</span>
+<span class="sd">        this is a useful function for calculating the means of large arrays</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">prev_result</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">])</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">prev_result</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span>
+        <span class="n">sum_squares</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">prev_result</span><span class="p">[</span><span class="s2">&quot;ss&quot;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_samples</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="n">old_mean</span> <span class="o">=</span> <span class="n">mean</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">old_mean</span> <span class="o">+</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">old_mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+            <span class="n">sum_squares</span> <span class="o">=</span> <span class="n">sum_squares</span> <span class="o">+</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">old_mean</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">variance</span> <span class="o">=</span> <span class="n">sum_squares</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
+                  <span class="s2">&quot;ss&quot;</span><span class="p">:</span> <span class="n">sum_squares</span><span class="p">,</span>
+                  <span class="s2">&quot;variance&quot;</span><span class="p">:</span> <span class="n">variance</span><span class="p">,</span>
+                  <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Window.update_variance_2D"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.update_variance_2D">[docs]</a>    <span class="k">def</span> <span class="nf">update_variance_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">new_samples</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;incremental calculation of means: accepts new_samples, which is a list of samples.</span>
+<span class="sd">        then calculates a new mean. this is a useful function for calculating the means of large arrays&quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">prev_result</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">]</span>  <span class="c1"># 2D numpy array with all zeros or watev</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">prev_result</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>  <span class="c1"># 2D numpy array</span>
+        <span class="n">sum_squares</span> <span class="o">=</span> <span class="n">prev_result</span><span class="p">[</span><span class="s2">&quot;ss&quot;</span><span class="p">]</span>  <span class="c1"># 2D numpy array</span>
+
+        <span class="c1"># new_samples is a list of arrays</span>
+        <span class="c1">#x is a 2D array</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_samples</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">old_mean</span> <span class="o">=</span> <span class="n">mean</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">old_mean</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">old_mean</span><span class="p">),</span> <span class="n">n</span><span class="p">)</span>
+            <span class="n">sum_squares</span> <span class="o">=</span> <span class="n">sum_squares</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mean</span><span class="p">),</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">old_mean</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
+                      <span class="s2">&quot;ss&quot;</span><span class="p">:</span> <span class="n">sum_squares</span><span class="p">,</span>
+                      <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">}</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="n">variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">sum_squares</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
+                  <span class="s2">&quot;ss&quot;</span><span class="p">:</span> <span class="n">sum_squares</span><span class="p">,</span>
+                  <span class="s2">&quot;variance&quot;</span><span class="p">:</span> <span class="n">variance</span><span class="p">,</span>
+                  <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">n</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="k">def</span> <span class="nf">_initialize_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">,</span> <span class="n">x_labels</span><span class="p">,</span> <span class="n">y_labels</span><span class="p">,</span> <span class="n">x_window</span><span class="p">,</span> <span class="n">nth_window</span><span class="p">,</span> <span class="n">s_edges</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a copy of the vector, an empty array with a defined shape, an empty list, and the maximum number of</span>
+<span class="sd">        nodes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">coeff_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">model_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">model_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Construct a list of tuples:</span>
+        <span class="c1"># Tuple = (Response, Explanatory, Index)</span>
+
+        <span class="k">for</span> <span class="n">col_index</span><span class="p">,</span> <span class="n">target_y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_data</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+            <span class="n">x_matrix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Identify experiments that are stationary</span>
+
+            <span class="n">insert_index</span> <span class="o">=</span> <span class="n">col_index</span>
+
+            <span class="k">if</span> <span class="n">nth_window</span> <span class="ow">in</span> <span class="n">x_window</span><span class="p">:</span>
+                <span class="n">keep_columns</span> <span class="o">=</span> <span class="o">~</span><span class="p">((</span><span class="n">x_window</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nth_window</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x_labels</span> <span class="o">==</span> <span class="n">y_labels</span><span class="p">[</span><span class="n">col_index</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="kc">False</span> <span class="ow">in</span> <span class="n">keep_columns</span><span class="p">:</span>
+                    <span class="n">insert_index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">keep_columns</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">x_matrix</span> <span class="o">=</span> <span class="n">x_matrix</span><span class="p">[:,</span> <span class="n">keep_columns</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">input_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">target_y</span><span class="p">,</span> <span class="n">x_matrix</span><span class="p">,</span> <span class="n">insert_index</span><span class="p">)</span>
+            <span class="n">model_inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_tuple</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">coeff_matrix</span><span class="p">,</span> <span class="n">model_list</span><span class="p">,</span> <span class="n">model_inputs</span>
+
+    <span class="c1">###################################################################################################################</span>
+    <span class="c1"># Abstract methods listed below</span>
+    <span class="c1">###################################################################################################################</span>
+
+<div class="viewcode-block" id="Window.run_permutation_test"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.run_permutation_test">[docs]</a>    <span class="k">def</span> <span class="nf">run_permutation_test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the permutation test and update the edge_table with p values. It is expected that this method will vary</span>
+<span class="sd">        depending on the type of method used by the window</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Window.fit_window"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.fit_window">[docs]</a>    <span class="k">def</span> <span class="nf">fit_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit the window with the specified window</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Window.get_coeffs"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.get_coeffs">[docs]</a>    <span class="k">def</span> <span class="nf">get_coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the beta coefficients</span>
+<span class="sd">        :param args:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Window.make_edge_table"><a class="viewcode-back" href="../../Swing.html#Swing.Window.Window.make_edge_table">[docs]</a>    <span class="k">def</span> <span class="nf">make_edge_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make an edge table that can be combined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,952 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swing package &#8212; Swing  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Swing.util package" href="Swing.util.html" />
+    <link rel="prev" title="Welcome to Swing’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="swing-package">
+<h1>Swing package<a class="headerlink" href="#swing-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Swing.util.html">Swing.util package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Swing.util.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Swing.util.html#module-Swing.util.Evaluator">Swing.util.Evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Swing.util.html#module-Swing.util.utility_module">Swing.util.utility_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Swing.util.html#module-Swing.util">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Swing.DionesusWindow">
+<span id="swing-dionesuswindow-module"></span><h2>Swing.DionesusWindow module<a class="headerlink" href="#module-Swing.DionesusWindow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Swing.DionesusWindow.DionesusWindow">
+<em class="property">class </em><code class="descclassname">Swing.DionesusWindow.</code><code class="descname">DionesusWindow</code><span class="sig-paren">(</span><em>dataframe</em>, <em>window_info</em>, <em>td_window</em>, <em>explanatory_dict</em>, <em>response_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Swing.Window.Window" title="Swing.Window.Window"><code class="xref py py-class docutils literal"><span class="pre">Swing.Window.Window</span></code></a></p>
+<p>A window that runs Dionesus as the network inference algorithm. The PLSR function is from sci-kit learn for
+implementation consistency between window types</p>
+<p>For more information about Dionesus see:</p>
+<p>Ciaccio, Mark F., et al. “The DIONESUS algorithm provides scalable and accurate reconstruction of dynamic
+phosphoproteomic networks to reveal new drug targets.” Integrative Biology (2015).</p>
+<dl class="method">
+<dt id="Swing.DionesusWindow.DionesusWindow.fit_window">
+<code class="descname">fit_window</code><span class="sig-paren">(</span><em>pcs=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow.fit_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow.fit_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the attributes of the window using expected pipeline procedure and calculate beta values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.DionesusWindow.DionesusWindow.generate_results_table">
+<code class="descname">generate_results_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow.generate_results_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow.generate_results_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.DionesusWindow.DionesusWindow.get_coeffs">
+<code class="descname">get_coeffs</code><span class="sig-paren">(</span><em>num_pcs=2</em>, <em>x_data=None</em>, <em>y_data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow.get_coeffs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow.get_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x_data</strong> – </li>
+<li><strong>n_trees</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array-like
+An array in which the rows are children and the columns are the parents</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.DionesusWindow.DionesusWindow.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow.initialize_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize the number of PCs to use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.DionesusWindow.DionesusWindow.make_edge_table">
+<code class="descname">make_edge_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow.make_edge_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow.make_edge_table" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>Swing.rank_edges()</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.DionesusWindow.DionesusWindow.run_permutation_test">
+<code class="descname">run_permutation_test</code><span class="sig-paren">(</span><em>n_permutations=1000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/DionesusWindow.html#DionesusWindow.run_permutation_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.DionesusWindow.DionesusWindow.run_permutation_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing.LassoWindow">
+<span id="swing-lassowindow-module"></span><h2>Swing.LassoWindow module<a class="headerlink" href="#module-Swing.LassoWindow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Swing.LassoWindow.LassoWindow">
+<em class="property">class </em><code class="descclassname">Swing.LassoWindow.</code><code class="descname">LassoWindow</code><span class="sig-paren">(</span><em>dataframe</em>, <em>window_info</em>, <em>td_window</em>, <em>explanatory_dict</em>, <em>response_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Swing.Window.Window" title="Swing.Window.Window"><code class="xref py py-class docutils literal"><span class="pre">Swing.Window.Window</span></code></a></p>
+<p>A window that runs Lasso regression as the network inference method</p>
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.add_noise_to_values">
+<code class="descname">add_noise_to_values</code><span class="sig-paren">(</span><em>window_values</em>, <em>max_random=0.2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.add_noise_to_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.add_noise_to_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add uniform noise to each value
+:param window: dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>max_random</strong> – float
+Amount of noise to add to each value, plus or minus</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.auc">
+<code class="descname">auc</code><span class="sig-paren">(</span><em>matrix</em>, <em>xvalues</em>, <em>axis=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.auc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.auc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate area under the curve
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.bootstrap_alpha">
+<code class="descname">bootstrap_alpha</code><span class="sig-paren">(</span><em>alpha</em>, <em>resamples</em>, <em>noise</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.bootstrap_alpha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.bootstrap_alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bootstrap a particular alpha, return a stack of beta matrices</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>alpha</strong> – </li>
+<li><strong>resamples</strong> – </li>
+<li><strong>noise</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.calc_edge_freq">
+<code class="descname">calc_edge_freq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.calc_edge_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.calc_edge_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is agnostic to the edge sign, only whether it exists</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.cross_validate_alpha">
+<code class="descname">cross_validate_alpha</code><span class="sig-paren">(</span><em>alpha</em>, <em>n_folds</em>, <em>condensed=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.cross_validate_alpha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.cross_validate_alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a Q^2 value for each explanatory value (column) at the given alpha value
+:param alpha: float
+:param n_folds: int</p>
+<blockquote>
+<div>when number of folds is the same as number of samples this is equivalent to leave-one-out</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.cv_select_alpha">
+<code class="descname">cv_select_alpha</code><span class="sig-paren">(</span><em>alpha_range=None</em>, <em>method='modelQ2'</em>, <em>n_folds=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.cv_select_alpha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.cv_select_alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the cross-validation metrics for a range of alpha values and select the best one based on the chosen
+method
+:param alpha_range: list, optional</p>
+<blockquote>
+<div>A range of alpha values to test. Default is a linspace of 50 alpha values from 0.0 to null_alpha</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>method</strong> – str, optional
+The method to use to set the alpha value. Current methods are ‘modelQ2’ and ‘max_posQ2’. ‘modelQ2’ uses the
+alpha that has the highest Q-squared value for the whole model. ‘max_posQ2’ uses the alpha that has the
+maximum number of genes with positive Q-squared values. Default is modelQ2</li>
+<li><strong>n_folds</strong> – int, optional
+The number of folds to use during cross validation. Default is 3. If n_folds equals the number of samples
+this is equivalent to leave-one-out-validation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple
+(alpha, cv_table)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.fit_window">
+<code class="descname">fit_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.fit_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.fit_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the attributes of the window using expected pipeline procedure and calculate beta values
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.get_coeffs">
+<code class="descname">get_coeffs</code><span class="sig-paren">(</span><em>alpha</em>, <em>x_data=None</em>, <em>y_data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.get_coeffs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.get_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x_data</strong> – </li>
+<li><strong>n_trees</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array-like
+An array in which the rows are children and the columns are the parents</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.get_nth_window_auc">
+<code class="descname">get_nth_window_auc</code><span class="sig-paren">(</span><em>nth</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.get_nth_window_auc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.get_nth_window_auc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.get_null_alpha">
+<code class="descname">get_null_alpha</code><span class="sig-paren">(</span><em>max_expected_alpha=10000.0</em>, <em>min_step_size=1e-09</em>, <em>s_edges=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.get_null_alpha"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.get_null_alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the smallest value of alpha that returns a lasso coefficient matrix of all zeros</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>max_expected_alpha</strong> – <p>float, optional</p>
+<p>Largest expected value of alpha that will return all zeros. This is a guess and is dependent on the data.
+The function will step from the minimum to this value with a step size one power of 10 less than this value</p>
+</li>
+<li><strong>min_step_size</strong> – <p>float, optional</p>
+<p>The smallest step size that will be taken. This also defines the precision of the alpha value returned</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>float</p>
+<p>The smallest alpha value that will return all zero beta values, subject to the precision of min_step_size</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>alpha=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.initialize_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose the value of alpha to use for fitting
+:param alpha: float, optional</p>
+<blockquote>
+<div>The alpha value to use for the window. If none is entered the alpha will be chosen by cross validation</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.make_edge_table">
+<code class="descname">make_edge_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.make_edge_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.make_edge_table" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>Swing.rank_edges()</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.remove_self_edges">
+<code class="descname">remove_self_edges</code><span class="sig-paren">(</span><em>data_array</em>, <em>insert_index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.remove_self_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.remove_self_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove self_edges by removing columns in the the matrices in data_list that have the same name as the response variable column.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.run_bootstrap">
+<code class="descname">run_bootstrap</code><span class="sig-paren">(</span><em>n_bootstraps=10</em>, <em>n_alphas=20</em>, <em>noise=0.2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.run_bootstrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.run_bootstrap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.LassoWindow.LassoWindow.run_permutation_test">
+<code class="descname">run_permutation_test</code><span class="sig-paren">(</span><em>n_permutations=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/LassoWindow.html#LassoWindow.run_permutation_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.LassoWindow.LassoWindow.run_permutation_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing.RFRWindow">
+<span id="swing-rfrwindow-module"></span><h2>Swing.RFRWindow module<a class="headerlink" href="#module-Swing.RFRWindow" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Swing.RFRWindow.RandomForestRegressionWindow">
+<em class="property">class </em><code class="descclassname">Swing.RFRWindow.</code><code class="descname">RandomForestRegressionWindow</code><span class="sig-paren">(</span><em>dataframe</em>, <em>window_info</em>, <em>td_window</em>, <em>explanatory_dict</em>, <em>response_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/RFRWindow.html#RandomForestRegressionWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.RFRWindow.RandomForestRegressionWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Swing.Window.Window" title="Swing.Window.Window"><code class="xref py py-class docutils literal"><span class="pre">Swing.Window.Window</span></code></a></p>
+<dl class="method">
+<dt id="Swing.RFRWindow.RandomForestRegressionWindow.fit_window">
+<code class="descname">fit_window</code><span class="sig-paren">(</span><em>n_jobs=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/RFRWindow.html#RandomForestRegressionWindow.fit_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.RFRWindow.RandomForestRegressionWindow.fit_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the attributes of the window using expected pipeline procedure and calculate beta values
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.RFRWindow.RandomForestRegressionWindow.get_coeffs">
+<code class="descname">get_coeffs</code><span class="sig-paren">(</span><em>n_trees</em>, <em>x_data=None</em>, <em>n_jobs=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/RFRWindow.html#RandomForestRegressionWindow.get_coeffs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.RFRWindow.RandomForestRegressionWindow.get_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x_data</strong> – </li>
+<li><strong>n_trees</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array-like
+An array in which the rows are children and the columns are the parents</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.RFRWindow.RandomForestRegressionWindow.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><em>n_trees=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/RFRWindow.html#RandomForestRegressionWindow.initialize_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.RFRWindow.RandomForestRegressionWindow.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose the value of alpha to use for fitting
+:param n_trees: float, optional</p>
+<blockquote>
+<div>The alpha value to use for the window. If none is entered the alpha will be chosen by cross validation</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.RFRWindow.RandomForestRegressionWindow.make_edge_table">
+<code class="descname">make_edge_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/RFRWindow.html#RandomForestRegressionWindow.make_edge_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.RFRWindow.RandomForestRegressionWindow.make_edge_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the edge table
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.RFRWindow.RandomForestRegressionWindow.run_permutation_test">
+<code class="descname">run_permutation_test</code><span class="sig-paren">(</span><em>n_permutations=1000</em>, <em>n_jobs=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/RFRWindow.html#RandomForestRegressionWindow.run_permutation_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.RFRWindow.RandomForestRegressionWindow.run_permutation_test" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n_permutations</strong> – </li>
+<li><strong>n_jobs</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing.Swing">
+<span id="swing-swing-module"></span><h2>Swing.Swing module<a class="headerlink" href="#module-Swing.Swing" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Swing.Swing.Swing">
+<em class="property">class </em><code class="descclassname">Swing.Swing.</code><code class="descname">Swing</code><span class="sig-paren">(</span><em>file_path</em>, <em>gene_start=None</em>, <em>gene_end=None</em>, <em>time_label='Time'</em>, <em>separator='t'</em>, <em>window_type='RandomForest'</em>, <em>step_size=1</em>, <em>min_lag=0</em>, <em>max_lag=0</em>, <em>window_width=3</em>, <em>sub_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An object that grabs different timepoints of data, can set window and step size, and makes an edge-list.</p>
+<dl class="method">
+<dt id="Swing.Swing.Swing.check_lags">
+<code class="descname">check_lags</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.check_lags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.check_lags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure the user specified lags meet necessary criteria
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.compile_edges">
+<code class="descname">compile_edges</code><span class="sig-paren">(</span><em>self_edges=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.compile_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.compile_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edges across all windows will be compiled into a single edge list
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.create_custom_windows">
+<code class="descname">create_custom_windows</code><span class="sig-paren">(</span><em>tf_list</em>, <em>random_time=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.create_custom_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.create_custom_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create window objects for SWING to use, with set explanatory variables (such as TFs)</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>pipeline</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.create_windows">
+<code class="descname">create_windows</code><span class="sig-paren">(</span><em>random_time=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.create_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.create_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create window objects for SWING to use</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>pipeline</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.fit_windows">
+<code class="descname">fit_windows</code><span class="sig-paren">(</span><em>pcs=None</em>, <em>alpha=None</em>, <em>n_trees=None</em>, <em>n_jobs=None</em>, <em>show_progress=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.fit_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.fit_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit each window in the list</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>pipeline</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>alpha</strong> – </li>
+<li><strong>n_trees</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_explanatory_indices">
+<code class="descname">get_explanatory_indices</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_explanatory_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_explanatory_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_n_windows">
+<code class="descname">get_n_windows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_n_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_n_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the number of windows</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>create_windows
+get_window_stats</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_samples">
+<code class="descname">get_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_samples" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_window_data">
+<code class="descname">get_window_data</code><span class="sig-paren">(</span><em>index</em>, <em>explanatory_indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_window_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_window_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the appropriate data for the window
+:param index:
+:param explanatory_indices:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_window_object">
+<code class="descname">get_window_object</code><span class="sig-paren">(</span><em>dataframe</em>, <em>window_info_dict</em>, <em>td_window</em>, <em>explanatory_dict</em>, <em>response_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_window_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_window_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a window object from a data-frame</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>create_windows</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dataframe</strong> – data-frame</li>
+<li><strong>window_info_dict</strong> – dict
+Dictionary containing information needed for window initialization</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_window_raw">
+<code class="descname">get_window_raw</code><span class="sig-paren">(</span><em>start_index</em>, <em>random_time=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_window_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_window_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select a window from the full data set. This is fancy data-frame slicing</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>create_windows
+get_window_stats
+get_window</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start_index</strong> – int
+The start of the window</li>
+<li><strong>random_time</strong> – bool, optional</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data-frame</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.get_window_stats">
+<code class="descname">get_window_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.get_window_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.get_window_stats" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Generate a dictionary of relevant information from a window</dt>
+<dd>N : the number of data points in this window,
+time_labels: the names of the time points
+step_size: the step-size of the current model
+window_size: the size of the window of the current model
+total_windows: the number of windows total
+window_index: the index of the window. counts start at 0. ie if the window index is 0 it is the 1st window.
+If the window index is 12, it is the 12th window in the series.</dd>
+</dl>
+<p>Called by:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.make_sort_df">
+<code class="descname">make_sort_df</code><span class="sig-paren">(</span><em>df</em>, <em>sort_by='mean'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.make_sort_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.make_sort_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the mean for each edge
+:param df: dataframe
+:return: dataframe</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.make_static_edge_dict">
+<code class="descname">make_static_edge_dict</code><span class="sig-paren">(</span><em>self_edges=False</em>, <em>lag_method='max_median'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.make_static_edge_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.make_static_edge_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a dictionary of edges
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.optimize_params">
+<code class="descname">optimize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.optimize_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.optimize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize window fit parameters</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>pipeline</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.rank_edges">
+<code class="descname">rank_edges</code><span class="sig-paren">(</span><em>n_bootstraps=1000</em>, <em>permutation_n=1000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.rank_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.rank_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run tests to rank edges in windows</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>pipeline</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n_bootstraps</strong> – </li>
+<li><strong>permutation_n</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.rank_windows">
+<code class="descname">rank_windows</code><span class="sig-paren">(</span><em>n_permutes=10</em>, <em>n_bootstraps=10</em>, <em>n_alphas=20</em>, <em>noise=0.2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.rank_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.rank_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run tests to score and rank windows</p>
+<p>Called by:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n_permutes</strong> – int, optional
+Number of permutes to run. Default is 1,000</li>
+<li><strong>n_bootstraps</strong> – int, optional
+Number of bootstraps to run. Default is 1,000</li>
+<li><strong>n_alphas</strong> – int, optional
+Number of alpha values to test if using Lasso. Default is 20</li>
+<li><strong>noise</strong> – float ([0,1]), optional
+The amount of noise to add to bootstrapped windows. Default is 0.2</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.remove_blank_rows">
+<code class="descname">remove_blank_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.remove_blank_rows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.remove_blank_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a row if the sum of that row is NaN</p>
+<p>Called by:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>sorted_edge_list</em>, <em>gold_standard_file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scores some stuff, I think…
+Called by:</p>
+<blockquote>
+<div>pipeline</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sorted_edge_list</strong> – </li>
+<li><strong>gold_standard_file</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.strip_dataframe">
+<code class="descname">strip_dataframe</code><span class="sig-paren">(</span><em>dataframe</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.strip_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.strip_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split dataframe object components into relevant numpy arrays
+:param dataframe:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Swing.Swing.zscore_all_data">
+<code class="descname">zscore_all_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Swing.html#Swing.zscore_all_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Swing.Swing.zscore_all_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zscore the data in a data-frame</p>
+<dl class="docutils">
+<dt>Called by:</dt>
+<dd>pipeline</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">z-scored dataframe</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing.Window">
+<span id="swing-window-module"></span><h2>Swing.Window module<a class="headerlink" href="#module-Swing.Window" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Swing.Window.Window">
+<em class="property">class </em><code class="descclassname">Swing.Window.</code><code class="descname">Window</code><span class="sig-paren">(</span><em>raw_dataframe</em>, <em>window_info</em>, <em>td_window</em>, <em>explanatory_dict</em>, <em>response_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A window object is a snapshot created from the full data. Windows operate independently from each other. Windows
+should be sub-classed to have network inference specific features and methods.</p>
+<dl class="method">
+<dt id="Swing.Window.Window.create_linked_list">
+<code class="descname">create_linked_list</code><span class="sig-paren">(</span><em>numpy_array_2D</em>, <em>value_label</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.create_linked_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.create_linked_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>labels and array should be in row-major order</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.fit_window">
+<code class="descname">fit_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.fit_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.fit_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the window with the specified window</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.get_coeffs">
+<code class="descname">get_coeffs</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.get_coeffs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.get_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the beta coefficients
+:param args:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.initialize_params">
+<code class="descname">initialize_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.initialize_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.initialize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a model for the window and calculate the necessary parameters
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.make_edge_table">
+<code class="descname">make_edge_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.make_edge_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.make_edge_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make an edge table that can be combined.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Swing.Window.Window.permutation_p_values">
+<code class="descname">permutation_p_values</code><em class="property"> = None</em><a class="headerlink" href="#Swing.Window.Window.permutation_p_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>The training score is a list of descriptors for how well the model fit the training data for each response
+variable for the current window the test score is a list of descriptors for how well the model fit the test data
+for each response variable for the current window.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.permute_data">
+<code class="descname">permute_data</code><span class="sig-paren">(</span><em>array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.permute_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.permute_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Warning: Modifies data in place. also remember the</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.resample_window">
+<code class="descname">resample_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.resample_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.resample_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample window values, along a specific axis
+:param window_values: array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.run_permutation_test">
+<code class="descname">run_permutation_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.run_permutation_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.run_permutation_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the permutation test and update the edge_table with p values. It is expected that this method will vary
+depending on the type of method used by the window
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.update_variance_1D">
+<code class="descname">update_variance_1D</code><span class="sig-paren">(</span><em>prev_result</em>, <em>new_samples</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.update_variance_1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.update_variance_1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>incremental calculation of means: accepts new_samples, which is a list of samples. then calculates a new mean.
+this is a useful function for calculating the means of large arrays</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Swing.Window.Window.update_variance_2D">
+<code class="descname">update_variance_2D</code><span class="sig-paren">(</span><em>prev_result</em>, <em>new_samples</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Swing/Window.html#Window.update_variance_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Swing.Window.Window.update_variance_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>incremental calculation of means: accepts new_samples, which is a list of samples.
+then calculates a new mean. this is a useful function for calculating the means of large arrays</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Swing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Swing" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Swing’s documentation!</a></li>
+      <li>Next: <a href="Swing.util.html" title="next chapter">Swing.util package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/Swing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
