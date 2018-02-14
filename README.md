@@ -36,7 +36,7 @@ SWING is available via github and is a python package. Here is an example instal
 ```
 git clone git@github.com:bagherilab/SWING.git
 cd SWING
-python setup.py
+python setup.py install
 ```
  
 Development
